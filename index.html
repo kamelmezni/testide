@@ -1,0 +1,4405 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#111111">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+  <script>
+    (function(){
+      const W = 615;   // šířka tvého designu v px
+      const H = 615 ;  // výška tvého designu v px
+      const meta = document.querySelector('meta[name=viewport]');
+      let currentScale = 1;
+      let locking = false;
+      let t = 0;
+
+      function desiredScale(useScreen=true){
+        // screen.* je v CSS pixelech a nemění se s meta zoomem
+        const vw = useScreen ? screen.width  : (visualViewport ? visualViewport.width  : innerWidth);
+        const vh = useScreen ? screen.height : (visualViewport ? visualViewport.height : innerHeight);
+        return Math.max(0.1, Math.min(0.9, Math.min(vw / W, vh / H)));
+      }
+
+      function applyScale(s){
+        if (Math.abs(s - currentScale) < 0.01) return; // nic neměň, když je rozdíl zanedbatelný
+        locking = true;
+        currentScale = s;
+        meta.setAttribute('content',
+          `width=${W}, initial-scale=${s}, minimum-scale=${s}, maximum-scale=${s}, user-scalable=no, viewport-fit=cover`);
+        // odemkni po ustálení rozložení
+        setTimeout(()=> locking = false, 200);
+      }
+
+      function recalc(){
+        if (locking) return;
+        clearTimeout(t);
+        t = setTimeout(()=> applyScale(desiredScale(/*useScreen=*/true)), 150);
+      }
+
+      // první výpočet z reálného viewportu, pak už ze screen.*
+      applyScale(desiredScale(/*useScreen=*/false));
+
+      // stačí reagovat na orientaci + resize jednou za „burst“
+      addEventListener('orientationchange', recalc, {passive:true});
+      addEventListener('resize',             recalc, {passive:true});
+      if (window.visualViewport) visualViewport.addEventListener('resize', recalc, {passive:true});
+      
+      console.log("recalculate");
+      
+    })();
+  </script>
+  
+
+  <meta charset="utf-8">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-N9Q5VE157X"></script>
+  <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-N9Q5VE157X');
+  </script>
+  
+  
+  
+  
+  
+  
+  <!-- Ostatní zdroje načítáme s defer, aby neblokovaly rendering -->
+  <link rel="stylesheet" href="css/xterm.css?v=04_11_2025">
+  <script src="js/xterm.js?v=04_11_2025"></script>
+  <script src="js/split.min.js?v=04_11_2025"></script>
+  <script src="js/ace.js?v=04_11_2025" defer></script>
+  <script src="js/ext-language_tools.js?v=04_11_2025" defer></script>
+  <script src="js/blockly_compressed.js?v=04_11_2025" defer></script>
+  <script src="js/blocks_compressed.js?v=04_11_2025" defer></script>
+  <script src="js/python_compressed.js?v=04_11_2025" defer></script>
+  <script src="js/cs.js?v=04_11_2025" defer></script>
+  <script src="js/sweetalert2.all.min.js?v=04_11_2025"></script>
+  <link rel="stylesheet" href="css/sweetalert2.min.css?v=04_11_2025">
+ 
+  <!-- Komunikační drivery pro USB Serial a Bluetooth -->
+  <script src="js/repl_web_usb_serial.js?v=04_11_2025" defer></script>
+  <script src="js/repl_web_bluetooth_serial.js?v=04_11_2025" defer></script>
+  
+  <!-- Ošetření chybějících dialogů v electronu -->
+  <script src="js/custom-dialog.js?v=04_11_2025"></script>
+
+  <!-- Virtuální joystick -->
+  <script>
+    let StickStatus={xPosition:0,yPosition:0,x:0,y:0,pressed:0};var JoyStick=function(t,e,i){var o=void 0===(e=e||{}).title?"joystick":e.title,n=void 0===e.width?0:e.width,a=void 0===e.height?0:e.height,r=void 0===e.internalFillColor?"#AAAAAA":e.internalFillColor,d=void 0===e.internalLineWidth?2:e.internalLineWidth,s=void 0===e.internalStrokeColor?"#333333":e.internalStrokeColor,c=void 0===e.externalLineWidth?2:e.externalLineWidth,u=void 0===e.externalStrokeColor?"#808080":e.externalStrokeColor,h=void 0===e.autoReturnToCenter||e.autoReturnToCenter;i=i||function(t){};var S=document.getElementById(t);S.style.touchAction="none";var l=document.createElement("canvas");l.id=o,0===n&&(n=S.clientWidth),0===a&&(a=S.clientHeight),l.width=n,l.height=a,S.appendChild(l);var f=l.getContext("2d"),k=0,g=2*Math.PI,x=(l.width-(l.width/2+10))/2,v=x+5,w=x+30,p=l.width/2,P=l.height/2,m=(l.width,l.height,p),y=P,E=void 0,T=void 0;function drawExternal(){f.beginPath(),f.arc(p,P,w,0,g,!1),f.lineWidth=c,f.strokeStyle=u,f.stroke()}function drawInternal(){f.beginPath(),m<x&&(m=v),m+x>l.width&&(m=l.width-v),y<x&&(y=v),y+x>l.height&&(y=l.height-v),f.arc(m,y,x,0,g,!1);var t=f.createRadialGradient(p,P,5,p,P,200);t.addColorStop(0,r),t.addColorStop(1,s),f.fillStyle=t,f.fill(),f.lineWidth=d,f.strokeStyle=s,f.stroke()}"ontouchstart"in document.documentElement?(l.addEventListener("touchstart",(function onTouchStart(t){k=1}),!1),document.addEventListener("touchmove",(function onTouchMove(t){1===k&&t.targetTouches[0].target===l&&(m=t.targetTouches[0].pageX,y=t.targetTouches[0].pageY,E=m,T=y,"BODY"===l.offsetParent.tagName.toUpperCase()?(m-=l.offsetLeft,y-=l.offsetTop):(m-=l.offsetParent.offsetLeft,y-=l.offsetParent.offsetTop),f.clearRect(0,0,l.width,l.height),drawExternal(),drawInternal(),StickStatus.xPosition=m,StickStatus.yPosition=y,StickStatus.x=((m-p)/v*100).toFixed(),StickStatus.y=((y-P)/v*100*-1).toFixed(),StickStatus.pressed=1,i(StickStatus))}),!1),document.addEventListener("touchend",(function onTouchEnd(t){if(!E||!T||t.changedTouches.length>0&&(Math.abs(t.changedTouches[0].pageX-E)>10||Math.abs(t.changedTouches[0].pageY-T)>10))return;E=void 0,T=void 0,k=0,h&&(m=p,y=P);f.clearRect(0,0,l.width,l.height),drawExternal(),drawInternal(),StickStatus.xPosition=m,StickStatus.yPosition=y,StickStatus.x=((m-p)/v*100).toFixed(),StickStatus.y=((y-P)/v*100*-1).toFixed(),StickStatus.pressed=0,i(StickStatus)}),!1)):(l.addEventListener("mousedown",(function onMouseDown(t){k=1}),!1),document.addEventListener("mousemove",(function onMouseMove(t){1===k&&(m=t.pageX,y=t.pageY,"BODY"===l.offsetParent.tagName.toUpperCase()?(m-=l.offsetLeft,y-=l.offsetTop):(m-=l.offsetParent.offsetLeft,y-=l.offsetParent.offsetTop),f.clearRect(0,0,l.width,l.height),drawExternal(),drawInternal(),StickStatus.xPosition=m,StickStatus.yPosition=y,StickStatus.x=((m-p)/v*100).toFixed(),StickStatus.y=((y-P)/v*100*-1).toFixed(),StickStatus.pressed=1,i(StickStatus))}),!1),document.addEventListener("mouseup",(function onMouseUp(t){k=0,h&&(m=p,y=P);f.clearRect(0,0,l.width,l.height),drawExternal(),drawInternal(),StickStatus.xPosition=m,StickStatus.yPosition=y,StickStatus.x=((m-p)/v*100).toFixed(),StickStatus.y=((y-P)/v*100*-1).toFixed(),StickStatus.pressed=0,i(StickStatus)}),!1)),drawExternal(),drawInternal(),this.GetWidth=function(){return l.width},this.GetHeight=function(){return l.height},this.GetPosX=function(){return m},this.GetPosY=function(){return y},this.GetX=function(){return((m-p)/v*100).toFixed()},this.GetY=function(){return((y-P)/v*100*-1).toFixed()}};
+  </script>
+
+
+  <!-- Funkce pro dynamickou úpravu toolboxu a ukládání nastavení -->
+  <script>
+  
+    // ==== Verze & changelog ============================================
+    const ESPIDE_VERSION = "2.0.0";
+    const ESPIDE_CHANGELOG = `
+
+[10.11.2025] 2.0.0
+- Opraveny dialogy ve správci souborů pro desktop verzi
+- Upravena funkce bluetooth připojení v desktop verzi
+- Úprava práce s cache pro desktop aplikaci
+- Zakázání tlačítek joysticku a instalace FW pro desktop verzi
+
+[4.11.2025] 2.0.0_beta
+- Přepracován výpočet velikosti okna na mobilních zařízeních
+- Opraveny chyby ve správci souborů
+- Do bluetooth knihovny doplněn kruhový buffer
+
+[9.10.2025] 1.13.6
+- Přidání správce souborů
+- Přepsání Bluetooth knihovny kvůli chybě v Micropythonu
+- Přidán hack pro zastavování programu v Bluetooth režimu
+- Doplněny funkce pro ukládání souborů do ESP
+
+[21.9.2025] 1.13.5
+- Optimalizace uživatelského rozhraní pro mobilní zařízení
+- Upscale grafiky pro lepší zobrazení displejích s vysokým PPI
+- Ošetření přepínání mezi USB a Bluetooth připojením
+- Doplnění textového režimu s panely
+- Ukládání obsahu textových editorů do localstorage
+
+
+[21.9.2025] 1.13.4
+- Přidána podpora pro Bluetooth low energy
+- Oprava některých dialogů na mobilních zařízeních
+
+
+[14.9.2025] 1.13.3
+- Do projektu se ukládají rozšíření jako komentář v xml
+- Načítání projektu ze souboru nastaví procesor a integruje doplňky
+- Načítání projektu z URL: nastaví procesor a integruje doplňky
+- Doplněn seznam změn a verzování editoru do rozbalovacího menu
+
+
+[12.8.2025]  1.13.2
+- Přidána podpora pro procesory ESP8266
+
+
+[16.6.2025]  1.13.1
+- Přidána funkce pro instalaci knihoven do procesoru pomocí USB
+
+
+[13.4.2025]  1.13.0
+- Přidána podpora pro procesory RP2040
+
+
+[2.3.2025]  1.12.0
+- Vydána USB - Serial verze ESP IDE V1.12
+- Přidána podpora pro ESP32S3
+- Přidány bloky pro souborový systém
+- Přidány bloky pro laserový dálkoměr VL53L0X
+- Přidány bloky pro expandér portů PCF8574
+- Přidány bloky pro UART komunikace
+- Úprava rozložení toolboxu.
+
+
+[22.2.2025]  1.11.0
+- Přepracovány funkce pro načítání toolboxu
+- Optimalizován webserver
+- Doplněn správce souborů
+- Komprimace uživatelských projektů pro úsporu FLASH paměti
+
+
+[19.5.2024]  1.10.0
+- Optimalizován kód webserveru
+- Přepracována inicializace I2C rozhraní.
+- Opraveny chyb
+
+
+[27.3.2024]  1.10.0
+- Nasazen nový kód pro webserver
+- Rozšířeny bloky pro ovládání DC motorů pomocí PWM
+- Přidány bloky pro 5x5 neopixel matici
+- Optimalizováno uživatelské rozhraní pro mobilní zařízení
+
+
+[12.2.2024]  1.08.0
+- Přidána podpora pro ESP32C3
+- Nové rozhraní pro správu uživatelských bloků
+- Implementován HTTP request blok
+- Try Catch a další funkce.
+
+
+[16.1.2024]  1.7.0
+- Virtuální joysticky pro snadné ovládání robotických vozítek
+
+
+[17.10.2023]  1.6.0
+- Implementována podpora ESP Now komunikace mezi procesory
+- Optimalizován webserver.
+
+
+[25.3.2023]  1.05.0
+- Přidán blok pro čtení ADC pinů pro joystick
+- Přidána podpora pro senzor TCS34725
+- Přidána podpora pro Rotační enkodéry
+- Přidána podpora pro gyroskop MPU6050
+- Přidána podpora pro ovládání modelářských servomotorů
+
+
+[9.5.2022]  1.03.0
+- Vytvoření editoru obrázků pro OLED Display
+- Experimentální podpora pro ESP8266.
+
+
+[22.4.2022]  1.02.0
+- Přidán vzdálený náhled na OLED Display.
+
+
+[15.1.2022]  1.01.0
+- Rozšířeny bloky pro ovládání robota
+- Optimalizován kód webserveru
+- Opraveny chyby.
+
+
+[2019] 1.0.0
+- Vydána první verze ESP IDE.
+
+`;
+</script>
+
+
+<script>
+    // Globální proměnné
+    var originalToolboxXML = "";   // obdrží čistý toolbox při startu
+    var userSettings = null; // např. { processor: "ESP32", filters: { "Komunikace": {enabled: true, subcategories: {"Komunikace_0": true, "Komunikace_1": true} }, ... } }
+    
+    var extensions = JSON.parse(localStorage.getItem("extensions") || "{}");   // {name:{js,xml,enabled}}
+    var addons_toolbox = "";   // sloučí vybrané XML
+
+    const TOOLBOX_MAP = {
+      ESP32: "toolbox_ESP32.xml",
+      ESP32C3: "toolbox_ESP32C3.xml",
+      ESP32S3: "toolbox_ESP32S3.xml",
+      ESP8266: "toolbox_ESP8266.xml",
+      RP2040:  "toolbox_RP2040.xml",
+      RP2040_Picoed: "toolbox_RP2040_picoed.xml"
+      //ESPBIT:  "toolbox_ESPBIT.xml"
+    };
+    
+    
+    const BOARD_CAPS = {
+      ESP32:         { ble: true },
+      ESP32C3:       { ble: true },
+      ESP32S3:       { ble: true },
+      ESP8266:       { ble: false },  // nemá BLE
+      RP2040:        { ble: false },
+      RP2040_Picoed: { ble: false }
+    };
+
+    function updateBleVisibility(proc) {
+      const btn = document.getElementById('BLE_SerialConnectButton');
+      if (!btn) return;
+      const supportsBle = !!(BOARD_CAPS[proc] && BOARD_CAPS[proc].ble);
+      btn.style.display = supportsBle ? "block" : "none";
+    }
+    
+    
+    
+    
+    (function () {
+      const origFire = Swal.fire.bind(Swal);
+
+      function normalizeArgs(a, b, c) {
+        // Podpora starého tvaru Swal.fire('Titulek', 'Text', 'error')
+        if (typeof a === 'object' && a !== null) return a;
+        const o = {};
+        if (typeof a === 'string') o.title = a;
+        if (typeof b === 'string') o.text  = b;
+        if (typeof c === 'string') o.icon  = c;
+        return o;
+      }
+
+      Swal.fire = function (a, b, c) {
+        const user = normalizeArgs(a, b, c);
+
+        // Bezpečné defaulty proti “rozbití” rozvržení:
+        const SAFE_DEFAULTS = {
+          target: '#swal-root',     // renderovat do našeho kořene
+          backdrop: false,          // žádné globální ztmavení (to nejvíc láme layout)
+          heightAuto: false,        // SweetAlert2 nebude šahat na výšku <body>
+          scrollbarPadding: false,  // žádná kompenzace scrollbaru -> žádné poskočení obsahu
+          allowOutsideClick: false, // ať se modal nezavírá klikem mimo (stabilnější UX)
+          returnFocus: false,       // žádný focus-jump po zavření
+          didOpen: () => {
+            // pro jistotu zhoď třídy, kdyby je něco přidalo
+            document.documentElement.classList.remove('swal2-shown');
+            document.body.classList.remove('swal2-shown', 'swal2-height-auto');
+          },
+          didClose: () => {
+            // po zavření jemně obnov UI (ACE/Blockly se někdy potřebují přemalovat)
+            requestAnimationFrame(() => {
+              try { if (window.aceText) aceText.resize(); } catch(_) {}
+              try { if (window.demoWorkspace) { onresize(); Blockly.svgResize(demoWorkspace); } } catch(_) {}
+            });
+          }
+        };
+
+        // Sloučení tak, aby výše uvedené bezpečné volby měly přednost
+        const merged = Object.assign({}, SAFE_DEFAULTS, user);
+        return origFire(merged);
+      };
+    })();
+    
+    
+    
+    
+    
+    function askText(title, defValue = '') {
+      return new Promise((resolve) => {
+        // custom-dialog.js nastaví Blockly.prompt = Swal text input
+        if (window.Blockly && typeof Blockly.prompt === 'function') {
+          Blockly.prompt(title, defValue, (val) => resolve(val));
+        } else if (window.dlg && typeof window.dlg.message === 'function') {
+          // fallback – textové pole přes Swal
+          Swal.fire({
+            input: 'text',
+            inputValue: defValue || '',
+            title,
+            showCancelButton: true,
+            confirmButtonText: 'OK',
+            cancelButtonText: 'Zrušit'
+          }).then(r => resolve(r.isConfirmed ? r.value : null));
+        } else {
+          // nouzový fallback (neměl by nastat, ale ať to nikdy nespadne)
+          const v = window.prompt(title, defValue);
+          resolve(v === null ? null : v);
+        }
+      });
+    }
+    
+    
+    function validateFileName(name, indexToIgnore = -1) {
+      const trimmed = (name || '').trim();
+      if (!trimmed) return 'Název nesmí být prázdný.';
+      // odstraněno "/" z blacklistu
+      if (/[\\:*?"<>|]/.test(trimmed)) return 'Název obsahuje zakázané znaky \\ : * ? " < > |';
+      const exists = (textProject.files || []).some((f, i) => i !== indexToIgnore && f && f.name === trimmed);
+      if (exists) return 'Soubor se stejným názvem už existuje.';
+      return null;
+    }
+
+    
+    
+    
+    
+    
+    
+    
+    // Malé HTML escape (pro bezpečné <pre>)
+    function _esc(s){return s.replace(/[&<>\"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));}
+
+    function showChangelog(){
+      const html = '<pre style="text-align:left;white-space:pre-wrap;margin:0;">' + _esc(ESPIDE_CHANGELOG) + '</pre>';
+      Swal.fire({
+        title: `ESP IDE ${ESPIDE_VERSION}`,
+        html,
+        width: 800,
+        confirmButtonText: "Zavřít"
+      });
+    }
+
+    // Dosadit verzi do obou míst po načtení DOM
+    document.addEventListener('DOMContentLoaded', ()=>{
+      const t1 = document.getElementById('menuVersionText');
+      if (t1) t1.textContent = ESPIDE_VERSION;
+    });
+    
+    
+    
+    
+
+    // === ESPIDE EXTENSIONS: constants + helpers =========================
+    const EXT_BLOB_BEGIN = "<!--ESPIDE_EXTENSIONS_BEGIN-->";
+    const EXT_BLOB_END   = "<!--ESPIDE_EXTENSIONS_END-->";
+
+    function utf8_to_b64(str){ return btoa(unescape(encodeURIComponent(str))); }
+    function b64_to_utf8(str){ return decodeURIComponent(escape(atob(str))); }
+
+
+
+    // Najde typy bloků v XML projektu
+    function collectBlockTypesFromXml(xmlText){
+      const set = new Set();
+      const re = /<block[^>]*\stype="([^"]+)"/g;
+      let m;
+      while ((m = re.exec(xmlText))){ set.add(m[1]); }
+      return set;
+    }
+
+    // Najde typy bloků definované v JS rozšíření
+    function collectDefinedTypesFromExtJs(js){
+      const set = new Set();
+      if (!js || typeof js !== "string") return set;
+
+      // 1) Klasické definice: Blockly.Blocks['typ']
+      const re1 = /Blockly\.Blocks\[['"]([^'"]+)['"]\]/gm;
+      let m;
+      while ((m = re1.exec(js))) { set.add(m[1]); }
+
+      // 2) Generátory: Blockly.Python['typ'] (i MicroPython/Micropython)
+      const re2 = /Blockly\.(?:Python|MicroPython|Micropython)\[['"]([^'"]+)['"]\]/gm;
+      while ((m = re2.exec(js))) { set.add(m[1]); }
+
+      // 3) JSON definice bloků (pro případy s JSON inicializací):  type: 'xxx'
+      //    Heuristika — může přidat pár false-positives, ale nevadí.
+      const re3 = /type\s*:\s*['"]([^'"]+)['"]/gm;
+      while ((m = re3.exec(js))) { set.add(m[1]); }
+
+      return set;
+    }
+
+
+    // Z balíku extensions vyber jen ta, která se v projektu opravdu používají
+    function pickUsedExtensions(xmlText){
+      const usedTypes = collectBlockTypesFromXml(xmlText);
+      const picked = [];
+      const src = (typeof extensions === "object" && extensions) ? extensions : {};
+
+      Object.keys(src).forEach(name=>{
+        const ext = src[name] || {};
+        if (!ext.js) return;
+        const types = collectDefinedTypesFromExtJs(ext.js);
+        for (const t of types){
+          if (usedTypes.has(t)){
+            picked.push({name, js: ext.js || "", xml: ext.xml || "", enabled: ext.enabled!==false});
+            return;
+          }
+        }
+      });
+
+      if (picked.length===0){
+        Object.keys(src).forEach(name=>{
+          const ext = src[name];
+          if (ext?.enabled) picked.push({name, js: ext.js||"", xml: ext.xml||"", enabled:true});
+        });
+      }
+      return picked;
+    }
+
+
+    // Vytáhne payload z komentáře a vrátí {payload,strippedText}    
+    function peelExtensionsComment(fullText){
+      const allBeg = [...fullText.matchAll(/<!--ESPIDE_EXTENSIONS_BEGIN-->/g)].map(m=>m.index);
+      const allEnd = [...fullText.matchAll(/<!--ESPIDE_EXTENSIONS_END-->/g)].map(m=>m.index);
+      if (!allBeg.length || !allEnd.length) return {payload:null, strippedText: fullText};
+
+      const i1 = allBeg[allBeg.length - 1];
+      const i2 = allEnd.find(i => i > i1);
+      if (i2 == null) return {payload:null, strippedText: fullText};
+
+      const before = fullText.slice(0, i1);
+      const inside = fullText.slice(i1 + "<!--ESPIDE_EXTENSIONS_BEGIN-->".length, i2).trim();
+      const after  = fullText.slice(i2 + "<!--ESPIDE_EXTENSIONS_END-->".length);
+      let payload = null;
+      try {
+        const json = b64_to_utf8(inside);
+        payload = JSON.parse(json);
+      } catch(e){
+        console.warn("Decode EXT payload fail:", e);
+      }
+      return {payload, strippedText: before + after};
+    }
+    
+
+    // Sloučí a integruje extensions → používá tvoji existující logiku
+    function mergeAndIntegrateExtensionsFromPayload(payload){
+      if (!payload || !Array.isArray(payload.extensions)) return;
+      payload.extensions.forEach(e=>{
+        if (!e || !e.name) return;
+        extensions[e.name] = { js: e.js||"", xml: e.xml||"", enabled: e.enabled!==false };
+      });
+      // Ulož + integruj přes tvoje existující funkcionality
+      applyExtensionSelection(); // ta sama uloží extensions + new_blocks_js/xml a zavolá integrateExtensions
+    }
+    // ===================================================================
+
+    // Vloží komentář s payloadem dovnitř <xml>…</xml> (před koncový tag)
+    function injectExtensionsIntoXml(xmlText, payloadB64){
+      const insert = `\n  ${EXT_BLOB_BEGIN}\n${payloadB64}\n${EXT_BLOB_END}\n`;
+      const idx = xmlText.lastIndexOf('</xml>');
+      if (idx !== -1) {
+        // standardní případ: máme kořen <xml>…</xml>
+        return xmlText.slice(0, idx) + insert + xmlText.slice(idx);
+      }
+      // Fallback: soubor nemá kořen <xml>…</xml> (nestává se, ale buďme robustní)
+      return '<xml>\n' + xmlText + '\n' + insert + '</xml>\n';
+    }
+    
+
+
+
+
+    function safeLoadExtensionsOnStartup() {
+      try {
+        // 1) pokus se vzít rovnou sloučené zdroje (nejrychlejší)
+        let js = localStorage.getItem("new_blocks_js")  || "";
+        let xml= localStorage.getItem("new_blocks_xml") || "";
+
+        // 2) když nic, vezmi detailní záznamy a postav je znovu
+        if (!(js || xml) && Object.keys(extensions).length) {
+          Object.values(extensions).forEach(e=>{
+            if (e.enabled !== false) {          // default = zapnuto
+              js  += e.js  || "";
+              xml += e.xml || "";
+            }
+          });
+        }
+
+        // 3) jestli je co načíst → integruj
+        if (js || xml) integrateExtensions(js, xml);
+      } catch (e) {
+        console.error("Auto-load EXT error:", e);
+        Swal.fire("Chyba", "Rozšíření se nepodařilo načíst: "+e.message, "error");
+      }
+    }
+
+
+    function refreshExtList(){
+      const list   = document.getElementById("ext_list");
+      list.innerHTML = "";
+
+      Object.keys(extensions).forEach(name=>{
+        const row      = document.createElement("div"); row.className="ext_row";
+        const chk      = document.createElement("input"); chk.type="checkbox";
+        chk.checked    = extensions[name].enabled;
+        chk.onchange   = ()=>extensions[name].enabled = chk.checked;
+
+        const lbl      = document.createElement("label"); lbl.textContent = name;
+        const del      = document.createElement("button"); del.textContent="✖";
+        del.className  = "ext_btn";
+        del.onclick    = ()=>{ delete extensions[name]; refreshExtList(); };
+
+        row.append(chk,lbl,del);
+        list.appendChild(row);
+      });
+    }
+
+    function openExtensionsDialog(){
+      refreshExtList();
+      document.getElementById("extensions_dialog").style.display="block";
+    }
+
+    function closeExtensionsDialog(){
+      document.getElementById("extensions_dialog").style.display="none";
+    }
+    
+    
+    function applyStoredFilter() {
+      if (!originalToolboxXML) return;
+      const cleaned = originalToolboxXML
+            .replace('<xml id="toolbox" style="display: none" >', "")
+            .replace("</xml>", "");
+
+      const filtered = filterToolboxWithFilters(
+            '<xml id="toolbox" style="display: none">' +
+            cleaned + addons_toolbox + "</xml>",
+            userSettings?.filters || {}
+      );
+      Blockly.getMainWorkspace().updateToolbox(filtered);
+      document.getElementById("toolbox").innerHTML =
+            filtered.replace('<xml id="toolbox" style="display: none">',"")
+                    .replace("</xml>","");
+    }
+
+    function applyExtensionSelection(){
+      // složení zdrojů jen z povolených doplňků
+      let agg_js="", agg_xml="";
+      Object.values(extensions).forEach(ext=>{
+        if(ext.enabled){ agg_js  += ext.js;  agg_xml += ext.xml; }
+      });
+      // ulož do storage
+      localStorage.setItem("extensions", JSON.stringify(extensions));
+      localStorage.setItem("new_blocks_js",  agg_js);
+      localStorage.setItem("new_blocks_xml", agg_xml);
+      integrateExtensions(agg_js, agg_xml);
+      closeExtensionsDialog();
+    }
+
+    
+
+    function integrateExtensions(jsSrc = "", xmlSrc = "") {
+      /* 1)  JS část ------------------------------------------------ */
+      if (jsSrc.trim()) {
+        try {
+          eval(jsSrc);
+        } catch (e) {
+          console.error("Ext-JS runtime error:", e);
+          Swal.fire("Chyba v rozšíření", e.message, "error");
+          return;                               // skonči, ať se nerozbije toolbox
+        }
+      }
+
+      /* 2)  XML/toolbox část -------------------------------------- */
+      if (!originalToolboxXML) return;          // workspace ještě není
+
+      // odřízni obálku <xml>
+      let stripped = (xmlSrc || "")
+                     .replace(/^<xml[^>]*>/, "")
+                     .replace(/<\/xml>\s*$/, "");
+
+      addons_toolbox = stripped;                // držíme pro filtry
+
+      const combined =
+            originalToolboxXML.replace(/<\/xml>\s*$/, "") +
+            stripped +
+            "</xml>";
+
+      try {
+        Blockly.getMainWorkspace().updateToolbox(combined);
+      } catch (e) {
+        console.error("Ext-XML error:", e);
+        Swal.fire("Chybný toolbox v rozšíření", e.message, "error");
+        return;
+      }
+
+      /* 3)  re-apply user filter (je-li definován) ---------------- */
+      try {
+        if (typeof applyStoredFilter === "function") applyStoredFilter();
+      } catch (e) {
+        console.warn("applyStoredFilter selhal:", e);
+      }
+    }
+
+
+
+
+
+
+
+    // Vrátí název souboru toolboxu podle zvoleného procesoru
+    function getToolboxFilename(processor) {
+      return TOOLBOX_MAP[processor] || "toolbox_ESP32.xml";
+    }
+    
+
+    // Asynchroní načtení obsahu toolboxu
+    async function fetchToolboxFile(filename) {
+      const url = new URL(filename, location.href).toString();
+      // 1) pokus o síť
+      try {
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const txt = await res.text();
+        // rychlá validace: musí to vypadat jako <xml ...>
+        if (/^\s*<!DOCTYPE html>/i.test(txt) || !/\<xml[\s>]/i.test(txt)) {
+          throw new Error('Unexpected content (not XML)');
+        }
+        return txt;
+      } catch (netErr) {
+        // 2) offline fallback z Cache API
+        try {
+          const keys = await caches.keys();
+          for (const k of keys) {
+            const c = await caches.open(k);
+            const r = await c.match(url, { ignoreSearch: true });
+            if (r) {
+              const txt = await r.text();
+              if (/\<xml[\s>]/i.test(txt)) return txt;
+            }
+          }
+        } catch (_) {}
+        // 3) selhání → přenes chybovou hlášku nahoru (UI ji už zobrazuje)
+        throw netErr;
+      }
+    }
+
+
+
+    function filterToolboxWithFilters(xmlString, filters) {
+      try {
+        filters = filters || {}; 
+        var parser = new DOMParser();
+        var xmlDoc = parser.parseFromString(xmlString, "text/xml");
+        var categories = xmlDoc.getElementsByTagName("category");
+        // Procházení kategorií vzadu, abychom bezpečně odstraňovali elementy.
+        for (var i = categories.length - 1; i >= 0; i--) {
+          var cat = categories[i];
+          var catName = cat.getAttribute("name");
+          if (filters[catName]) {
+            if (!filters[catName].enabled) {
+              cat.parentNode.removeChild(cat);
+              continue;
+            }
+            if (filters[catName].subcategories) {
+              var children = Array.from(cat.childNodes).filter(node => node.nodeType === Node.ELEMENT_NODE);
+              var labelIndex = 0;
+              for (var idx = 0; idx < children.length; idx++) {
+                var node = children[idx];
+                if (node.nodeName.toLowerCase() === "label") {
+                  var key = catName + "_" + labelIndex;
+                  if (!filters[catName].subcategories[key]) {
+                    var removalLabel = node;
+                    var sibling = removalLabel.nextSibling;
+                    removalLabel.parentNode.removeChild(removalLabel);
+                    while (sibling) {
+                      if (sibling.nodeType === Node.TEXT_NODE && sibling.textContent.trim() === "") {
+                        var temp = sibling;
+                        sibling = sibling.nextSibling;
+                        temp.parentNode.removeChild(temp);
+                        continue;
+                      }
+                      if (sibling.nodeType === Node.ELEMENT_NODE && sibling.nodeName.toLowerCase() === "block") {
+                        var temp = sibling;
+                        sibling = sibling.nextSibling;
+                        temp.parentNode.removeChild(temp);
+                        continue;
+                      }
+                      if (sibling.nodeType === Node.ELEMENT_NODE && sibling.nodeName.toLowerCase() === "label") {
+                        break;
+                      }
+                      break;
+                    }
+                  }
+                  labelIndex++;
+                }
+              }
+            }
+          }
+        }
+        // Odstraníme kategorie, které po filtrování nemají žádný obsah (žádné block nebo label elementy),
+        // pokud nemají atribut custom.
+        var updatedCategories = xmlDoc.getElementsByTagName("category");
+        for (var i = updatedCategories.length - 1; i >= 0; i--) {
+          var cat = updatedCategories[i];
+          // Pokud má kategorie atribut custom, přeskočíme ji
+          if (cat.hasAttribute("custom")) continue;
+          var content = Array.from(cat.childNodes).filter(node => {
+            return node.nodeType === Node.ELEMENT_NODE && 
+                   (node.nodeName.toLowerCase() === "block" || node.nodeName.toLowerCase() === "label");
+          });
+          if (content.length === 0) {
+            cat.parentNode.removeChild(cat);
+          }
+        }
+        var serializer = new XMLSerializer();
+        return serializer.serializeToString(xmlDoc);
+      } catch (e) {
+        console.error("Chyba při filtrování toolboxu:", e);
+        return xmlString;
+      }
+    }
+
+
+
+
+
+    async function showCategoryFilterDialog(toolboxXMLString) {
+      var parser = new DOMParser();
+      var xmlDoc = parser.parseFromString(toolboxXMLString, "text/xml");
+      var categoryNodes = xmlDoc.getElementsByTagName("category");
+      var formHtml = "";
+      for (var i = 0; i < categoryNodes.length; i++) {
+        var catName = categoryNodes[i].getAttribute("name");
+        // Získáme barvu kategorie (fallback, pokud není definována)
+        var catColor = categoryNodes[i].getAttribute("colour") || "#ffffff";
+        // Kontejner kategorie s danou barvou, menším fontem nadpisu a levým zarovnáním
+        formHtml += '<div style="background-color: ' + catColor + '; padding: 6px; margin-bottom: 5px; text-align: left; border-radius: 5px;">';
+        formHtml += '<h3 style="font-size: 19px; margin: 0px 0px 2px 6px; color: #ffffff; text-shadow: 0px 0px 3px #00000080;">' + catName + '</h3>';
+        var hasSubcats = false;
+        var childNodes = categoryNodes[i].childNodes;
+        var subcatIndex = 0;
+        // Procházíme podkategorie (elementy <label>) uvnitř kategorie
+        for (var j = 0; j < childNodes.length; j++) {
+          if (childNodes[j].nodeName.toLowerCase() === "label") {
+            hasSubcats = true;
+            var labelText = childNodes[j].getAttribute("text");
+            var checkboxName = catName + "_" + subcatIndex;
+            // Kontrola uloženého stavu – pokud daný záznam existuje, použije se, jinak true (checked)
+            var subcatChecked = true;
+            if (userSettings && userSettings.filters && userSettings.filters[catName] &&
+                userSettings.filters[catName].subcategories && 
+                userSettings.filters[catName].subcategories.hasOwnProperty(checkboxName)) {
+              subcatChecked = userSettings.filters[catName].subcategories[checkboxName];
+            }
+            formHtml += '<label style="display: inline-block; margin-right: 10px; vertical-align: middle; color: #ffffff; text-shadow: 1px 1px 3px #000000b0;">';
+            formHtml += '<input type="checkbox" name="' + checkboxName + '" ' + (subcatChecked ? 'checked' : '') + ' style="vertical-align: middle; margin-right: 5px; width: 24px;height: 18px; display: inline-block;">';
+            formHtml += labelText;
+            formHtml += '</label><br>';
+            subcatIndex++;
+          }
+        }
+        // Pokud kategorie nemá podkategorie, nabídneme možnost nastavení celé kategorie
+        if (!hasSubcats) {
+          var catChecked = true;
+          if (userSettings && userSettings.filters && userSettings.filters.hasOwnProperty(catName) && 
+              userSettings.filters[catName].hasOwnProperty("enabled")) {
+            catChecked = userSettings.filters[catName].enabled;
+          }
+          formHtml += '<label style="display: inline-block; margin-right: 10px; vertical-align: middle; color: #ffffff; text-shadow: 1px 1px 3px #000000b0;">';
+          formHtml += '<input type="checkbox" name="' + catName + '" ' + (catChecked ? 'checked' : '') + ' style="vertical-align: middle; margin-right: 5px; width: 24px;height: 18px; display: inline-block;">';
+          formHtml += 'Celá kategorie ' + catName;
+          formHtml += '</label><br>';
+        }
+        formHtml += '</div>';
+      }
+
+      return Swal.fire({
+        title: 'Nastavte zobrazení bloků',
+        html: formHtml,
+        focusConfirm: false,
+        showCancelButton: false,
+        preConfirm: () => {
+          var filters = {};
+          var inputs = Swal.getPopup().querySelectorAll('input[type=checkbox]');
+          inputs.forEach(function(chk) {
+            var name = chk.name;
+            var checked = chk.checked;
+            if (name.indexOf("_") !== -1) {
+              var parts = name.split("_");
+              var cat = parts[0];
+              if (!filters[cat]) {
+                filters[cat] = { enabled: true, subcategories: {} };
+              }
+              filters[cat].subcategories[name] = checked;
+            } else {
+              filters[name] = { enabled: checked };
+            }
+          });
+          return filters;
+        },
+        width: '550px',
+        footer: '<div style="padding-bottom: 4px;"></div>'
+      });
+    }
+
+
+    // Zobrazí počáteční dialog pro výběr procesoru; pokud jsou uložena nastavení v localStorage, předvyplní je.
+    async function showProcessorDialog() {
+      var defaultProcessor = "ESP32";
+      //if (userSettings && userSettings.processor) {
+      //  defaultProcessor = userSettings.processor;
+      //}
+      return Swal.fire({
+        title: 'Vyberte procesor',
+        html:
+          '<select id="swal-processor" class="swal2-input">' +
+            '<option value="ESP32">ESP32</option>' +
+            '<option value="ESP32C3">ESP32C3</option>' +
+            '<option value="ESP32S3">ESP32S3</option>' +
+            '<option value="ESP8266">ESP8266</option>' +
+            '<option value="RP2040">RP2040</option>' +
+            '<option value="RP2040_Picoed">RP2040 Pico:ed</option>' +
+          '</select>',
+        focusConfirm: false,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        preConfirm: () => {
+          return {
+            processor: document.getElementById('swal-processor').value
+          }
+        },
+        didOpen: () => {
+          document.getElementById('swal-processor').value = defaultProcessor;
+        }
+      });
+    }
+    
+    
+    
+    
+    async function updateProcessor(newProc) {
+      updateBleVisibility(newProc);
+      
+      if (newProc === userSettings.processor) return;
+
+      userSettings.processor = newProc;
+      localStorage.setItem("userSettings", JSON.stringify(userSettings));
+
+      try {
+        toolboxFilename      = getToolboxFilename(newProc);
+        const baseXML        = await fetchToolboxFile(toolboxFilename);
+        originalToolboxXML   = baseXML;
+
+        const completeXML =
+          baseXML.replace(/<\/xml>\s*$/, '') + addons_toolbox + '</xml>';
+
+        const filtered =
+          filterToolboxWithFilters(completeXML, userSettings.filters || {});
+
+        // Překreslení toolboxu
+        const ws  = Blockly.getMainWorkspace();
+        const el  = document.getElementById('toolbox');
+        el.innerHTML = filtered
+                        .replace('<xml id="toolbox" style="display: none">','')
+                        .replace('</xml>','');
+        ws.updateToolbox(filtered);
+
+        console.log('Procesor přepnut na', newProc);
+      } catch (e) {
+        console.error('Chyba při přepínání procesoru:', e);
+        Swal.fire('Chyba',
+                  'Nepodařilo se přepnout procesor: ' + e.message,
+                  'error');
+      }
+    }
+
+  </script>
+    
+    
+    
+    
+<script>    
+    // Graficke tlacitko pripojeni
+      const STATE = {
+        DISCONNECTED: 0,
+        DISCONNECTED_HOVER: 1,
+        CONNECTED: 2,
+        CONNECTED_HOVER: 3,
+        ERROR: 4,
+        ERROR_HOVER: 5
+      };
+
+      let currentState = STATE.DISCONNECTED;
+
+      const images = [
+        "img0.gif", // odpojeno
+        "img1.png", // odpojeno hover
+        "img2.png", // připojeno
+        "img3.png", // připojeno hover
+        "img4.png", // chyba
+        "img5.png"  // chyba hover
+      ];
+    
+    
+    
+    
+    
+    var editor;
+    var term;
+    var blocklyArea;
+    var blocklyDiv;
+    var demoWorkspace;
+    var code_window_open = false;
+    var vibro_time = 100;
+    let connectButton;
+    let bleconnectButton;
+    var toolboxFilename;
+    
+    var run_uploaded_code = false;
+    
+    
+    // Detekce jestli už došlo k nějakému uploadu kódu do zařízení
+    var first_upload = true;
+    
+    
+    // Globální instance komunikace
+    let mpSerial;  // instance třídy MicroPythonSerial
+    
+    
+    // --- Aktivní link & instance ---
+    let activeLink = 'usb';          // 'usb' | 'ble'
+    let mpBLE = null;
+    
+    // --- Jednotná logika připojení -----------------------------------
+    const CONNECTED_STATES = new Set([STATE.CONNECTED, STATE.CONNECTED_HOVER]);
+
+    function isUsbConnected() {
+      // opíráme se o skutečný port i o tvůj stav UI
+      const portOk = !!(mpSerial && mpSerial.port);
+      const uiOk   = CONNECTED_STATES.has(currentState);
+      // extra defenzivně zkusíme, pokud existuje readable/writable
+      const streamsOk = portOk && (
+        (mpSerial.port.readable || mpSerial.port.writable || typeof mpSerial.isOpen === "function")
+      );
+      return (portOk && uiOk) || streamsOk;
+    }
+
+    function isBleConnected() {
+      // BLE třída má .connected getter; zároveň bereme v potaz stav tlačítka
+      const bleOk = !!(mpBLE && mpBLE.connected);
+      const uiOk  = typeof bleState !== "undefined" ? CONNECTED_STATES.has(bleState) : true;
+      return bleOk && uiOk;
+    }
+
+    // Jednoduchý predikát pro celý editor:
+    function isEditorConnected() {
+      return isUsbConnected() || isBleConnected();
+    }
+
+    // Aktivní link (preferuje "activeLink", ale pokud by byl mimo realitu,
+    // sáhne po tom, co je reálně připojeno)
+    function getActiveLink() {
+      if (activeLink === 'ble' && isBleConnected()) return 'ble';
+      if (activeLink === 'usb' && isUsbConnected()) return 'usb';
+      // fallback: zkus odhadnout podle reality
+      if (isBleConnected()) return 'ble';
+      if (isUsbConnected()) return 'usb';
+      return 'none';
+    }
+
+    // Jednotný transport pro volání mp().*
+    function getActiveTransport() {
+      const link = getActiveLink();
+      if (link === 'ble') return mpBLE;
+      if (link === 'usb') return mpSerial;
+      return null;
+    }
+
+    // Alias – všude zamiň volání mpSerial.* → mp().*
+    const mp = () => getActiveTransport();
+    
+    
+    
+    
+    
+    
+    
+    
+    // --- Ikony s prefixy pro USB i BLE ---
+    const usbImages = images.map(n => "media/usb_" + n);  // např. usb_img0.gif
+    const bleImages = images.map(n => "media/ble_" + n);  // např. ble_img0.gif
+
+    // --- Stav BLE tlačítka (USB už má currentState/updateButton) ---
+    let bleState = STATE.DISCONNECTED;
+    
+    
+    function bleUpdateButton(state) {
+        bleState = state;
+        bleConnectButton.style.backgroundImage = `url('${bleImages[state]}')`;
+    }
+    
+    function updateButton(state) {
+        currentState = state;
+        connectButton.style.backgroundImage = `url('${usbImages[state]}')`;
+    }
+    
+    
+    let __connectLock = Promise.resolve();
+    
+    async function withConnectLock(fn){
+      const prev = __connectLock;
+      let release;
+      __connectLock = new Promise(r => release = r);
+      try { await prev; return await fn(); }
+      finally { release(); }
+    }
+
+    async function ensureExclusive(target){ // 'usb' | 'ble'
+      if (target === 'usb' && isBleConnected()){
+        try { await mpBLE.disconnect(); } catch(_) {}
+        bleUpdateButton(STATE.DISCONNECTED);
+        activeLink = 'none';
+        await delay(100);
+      }
+      if (target === 'ble' && isUsbConnected()){
+        try { await mpSerial.disconnect(); } catch(_) {}
+        updateButton(STATE.DISCONNECTED);
+        activeLink = 'none';
+        await delay(100);
+      }
+    }
+    
+    
+    
+    
+    // Pomocná prodleva
+    function delay(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    
+    // Přidána funkce onresize podle původní implementace
+    function onresize(e) {
+      var element = blocklyArea;
+      if(element)
+      {
+          var x = 0;
+          var y = 0;
+          do {
+            x += element.offsetLeft || 0;
+            y += element.offsetTop || 0;
+            element = element.offsetParent;
+          } while (element);
+          blocklyDiv.style.left = x + 'px';
+          blocklyDiv.style.top = (y + 44) + 'px';
+          blocklyDiv.style.width = blocklyArea.offsetWidth + 'px';
+          blocklyDiv.style.height = (blocklyArea.offsetHeight - 44) + 'px';
+          Blockly.svgResize(demoWorkspace);
+      }
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    let AceEditSession = null;
+    let AceUndoManager = null;
+    let AceUndoManagerCtor = null;
+
+    let textProject = {
+      files: [],            // {name, session, dirty}
+      activeIndex: -1
+    };
+    
+    
+    // --- Režim projektu ---
+    let projectMode = "blocks"; // "blocks" | "text"
+
+    // --- Textový projekt & taby ---
+    let aceText = null;
+    
+    function updateSaveButtonLabel(){
+      const els = document.querySelectorAll('area[data-role="save"]');
+      const isText = (typeof projectMode !== 'undefined' && projectMode === 'text');
+      const alt   = isText ? 'Uložit soubor do ESP' : 'Uložit soubor do PC';
+      const title = isText ? 'Uložit soubor do ESP' : 'Uložit soubor do počítače';
+      els.forEach(el => { el.alt = alt; el.title = title; });
+    }
+
+    function switchUITo(mode){
+      const blocklyDiv = document.getElementById('blocklyDiv');
+      const textShell  = document.getElementById('textShell');
+
+      if (mode === "blocks"){
+        // bloky vidět, text pryč
+        blocklyDiv.style.visibility   = "visible";
+        blocklyDiv.style.pointerEvents = "auto";
+        textShell.style.display = "none";
+        
+        projectMode = "blocks";
+
+        requestAnimationFrame(() => {
+          void blocklyDiv.offsetHeight; // vynutí reflow
+          onresize();                   // přepočti metriky
+        });
+      } else {
+        // text vidět, bloky „neaktivní“, ale pořád v layoutu
+        blocklyDiv.style.visibility    = "hidden";
+        blocklyDiv.style.pointerEvents = "none";
+        textShell.style.display = "block";
+        blocklyDiv.style.height = "1px";
+        
+        projectMode = "text";
+        
+        requestAnimationFrame(() => { try { aceText && aceText.resize(); } catch(e){} });
+      }
+      
+      try { updateSaveButtonLabel(); } catch(_) {}
+      localStorage.setItem("espide.projectMode", mode);
+    }
+
+      // Segment kliky
+      document.addEventListener('DOMContentLoaded', ()=>{
+        const rbBlocks = document.getElementById('modeBlocks');
+        const rbText   = document.getElementById('modeText');
+        if (rbBlocks && rbText){
+          rbBlocks.addEventListener('change', ()=>rbBlocks.checked && switchUITo("blocks"));
+          rbText  .addEventListener('change', ()=>rbText.checked   && switchUITo("text"));
+
+          // obnov režim
+          const saved = localStorage.getItem("espide.projectMode");
+          if (saved === "text"){ rbText.checked = true; switchUITo("text"); }
+          else { rbBlocks.checked = true; switchUITo("blocks"); }
+        }
+      });
+
+      function newUndoManager(){
+          try{
+            if (AceUndoManagerCtor) return new AceUndoManagerCtor();
+            const umMod = ace.require("ace/undomanager");
+            if (umMod && umMod.UndoManager) return new umMod.UndoManager();
+          }catch(_){}
+          // nouzový shim, neměl by se použít
+          return {
+            undo(){}, redo(){}, hasUndo(){return false;}, hasRedo(){return false;},
+            markClean(){}, markDirty(){}, execute(){}
+          };
+      }
+
+
+      function ensureOneDefaultTab(){
+          addNewTab(uniqueFileName('novy_soubor', 'py', -1), '# sem piš svůj kód\n');
+      }
+
+      function addNewTab(name, content){
+          name = uniqueFileName(name.replace(/\.[^\.]+$/, ''), name.split('.').pop() || "py");
+          const ses = new AceEditSession(content || "");
+          ses.setMode("ace/mode/python");
+          ses.setUndoManager(newUndoManager());   // správně vytvořený UndoManager
+
+          ses.on('change', ()=>{
+            const i = textProject.activeIndex;
+            if (i >= 0) {
+              textProject.files[i].dirty = true;
+              saveTextProjectToLS();
+              renderTabs();
+            }
+          });
+
+          textProject.files.push({name, session: ses, dirty:false});
+          textProject.activeIndex = textProject.files.length - 1;
+          if (aceText) aceText.setSession(ses);
+          renderTabs();
+          saveTextProjectToLS();
+      }
+
+
+
+      function activateTab(index){
+          if (index<0 || index>=textProject.files.length) return;
+          textProject.activeIndex = index;
+          if (aceText){
+            aceText.setSession(textProject.files[index].session);
+            aceText.focus(); // zajistí, že Ctrl+Z/Znovu míří do ACE
+          }
+          renderTabs();
+      }
+
+
+      function closeTab(index){
+          if (index<0 || index>=textProject.files.length) return;
+          const f = textProject.files[index];
+          if (f.dirty && !confirm("Zavřít '"+f.name+"' bez uložení do PC?")) return;
+
+          textProject.files.splice(index,1);
+
+          if (textProject.files.length === 0){
+            textProject.activeIndex = -1;
+            ensureOneDefaultTab();
+          } else {
+            textProject.activeIndex = Math.min(index, textProject.files.length-1);
+            aceText && aceText.setSession(textProject.files[textProject.activeIndex].session);
+          }
+          renderTabs();
+          saveTextProjectToLS();
+      }
+
+      async function renameTab(index) {
+          const cur = textProject.files[index];
+          if (!cur) return;
+
+          // 1) Zeptej se uživatele na nový název
+          let nn = await askText('Přejmenovat soubor na:', cur.name);
+          if (nn === null) return;              // uživatel zrušil
+          nn = nn.trim();
+
+          // 2) Sloužíš strukturu názvu (zachováš původní logiku rozdělení base/ext)
+          const p = splitNameExt(nn);
+          let candidate = uniqueFileName(p.base, p.ext, index);
+
+          // 3) Validace (volitelné: dovolit více pokusů, níže ukázka s 1 re-pokusem)
+          let err = validateFileName(candidate, index);
+          if (err) {
+            // Jednoduchý re-try: ukáže chybu a umožní jeden další pokus
+            await Swal.fire({ icon: 'error', title: 'Chybný název', text: err, confirmButtonText: 'Zkusit znovu' });
+            nn = await askText('Přejmenovat soubor na:', candidate);
+            if (nn === null) return;
+            const p2 = splitNameExt(nn.trim());
+            candidate = uniqueFileName(p2.base, p2.ext, index);
+            err = validateFileName(candidate, index);
+            if (err) {
+              await Swal.fire({ icon: 'error', title: 'Nelze přejmenovat', text: err });
+              return;
+            }
+          }
+
+          // 4) Ulož a překresli
+          cur.name = candidate;
+          renderTabs();
+          saveTextProjectToLS();
+      }
+
+
+        function renderTabs(){
+          const host = document.getElementById('tabs');
+          host.innerHTML = "";
+          textProject.files.forEach((f, i)=>{
+            const b = document.createElement('div');
+            b.style.cssText = "display:flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #a5a5a5;border-radius:8px;background:#fff;cursor:pointer;height:21px;margin:4px;";
+            if (i===textProject.activeIndex) b.style.outline = "3px solid #b9b9b9";
+            b.innerHTML = '<span style="font-family:monospace">' + f.name + (f.dirty ? '*' : '') + '</span>'
+              + '<span title="Přejmenovat" style="opacity:.7; margin-left:6px;">✎</span>'
+              + '<span title="Zavřít" style="opacity:.7;">×</span>';
+
+            b.addEventListener('click', (ev)=>{
+              if (ev.target.title==="Zavřít"){ closeTab(i); ev.stopPropagation(); return; }
+              if (ev.target.title==="Přejmenovat"){ renameTab(i); ev.stopPropagation(); return; }
+              activateTab(i);
+            });
+            host.appendChild(b);
+          });
+        }
+
+        document.addEventListener('DOMContentLoaded', ()=>{
+          const btn = document.getElementById('btnNewTab');
+          if (btn) btn.addEventListener('click', ()=> addNewTab(uniqueFileName("novy_soubor","py"), ""));
+        });
+
+        function saveTextProjectToLS(){
+          try {
+            const data = {
+              files: textProject.files.map(f=>({name:f.name, content:f.session.getValue()})),
+              activeIndex: textProject.activeIndex
+            };
+            localStorage.setItem("espide.textProject", JSON.stringify(data));
+          } catch(e){ console.warn(e); }
+        }
+        
+        function restoreTextProjectFromLS(){
+          try {
+            const raw = localStorage.getItem("espide.textProject");
+            if (!raw) return;
+            const data = JSON.parse(raw);
+
+            textProject.files = (data.files||[]).map(x=>{
+              const ses = new AceEditSession(x.content || "");
+              ses.setMode("ace/mode/python");
+              ses.setUndoManager(newUndoManager());   // důležité
+              ses.on('change', ()=>{
+                const i = textProject.activeIndex;
+                if (i >= 0) {
+                  textProject.files[i].dirty = true;
+                  saveTextProjectToLS();
+                  renderTabs();
+                }
+              });
+              return { name:x.name, session: ses, dirty:false };
+            });
+
+            textProject.activeIndex = Math.min(
+              Math.max(0, data.activeIndex|0),
+              Math.max(0, textProject.files.length-1)
+            );
+          } catch(e){ console.warn(e); }
+        }
+
+
+        
+        function uniqueFileName(base, ext, ignoreIndex = -1){
+          const taken = new Set(textProject.files
+            .map((f, idx)=> idx===ignoreIndex ? null : f.name)
+            .filter(Boolean));
+          let n = 1, name;
+          do {
+            name = base + n + '.' + ext;
+            n++;
+          } while (taken.has(name));
+          return name;
+        }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    function show_modal_message(in_txt,text_detail) {
+        Swal.fire({
+          title: in_txt,
+          text: text_detail,
+          icon: "warning",
+          showConfirmButton: true,
+          // SweetAlert2 v11: bez deprecated hooků a bez varování
+          backdrop: false,
+          allowOutsideClick: false,
+          allowEscapeKey: true,
+          allowEnterKey: true
+        })
+    }
+    
+
+  
+  
+  
+  
+    async function sendFileToDevice(fileUrl, targetFolder) {
+      // Kontrola připojení zařízení
+      if (!isEditorConnected()) {
+        //alert("Zařízení není připojeno!");
+        show_modal_message('Zařízení nepřipojeno.', 'Připojte zařízení pomocí USB nebo Bluetooth.');
+        return;
+      }
+
+      // Vrať Promise získaný z fetch
+      return fetch(fileUrl)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error("Chyba při načítání souboru. HTTP status: " + response.status);
+          }
+          return response.text();
+        })
+        .then(async content => {
+          let fileName = fileUrl.split("/").pop();
+          if (targetFolder) {
+            if (!targetFolder.endsWith("/")) {
+              targetFolder += "/";
+            }
+            fileName = targetFolder + fileName;
+          }
+
+          mp().mute_terminal = true;
+          
+          term.writeln("Nahrávám soubor: " + fileName);
+          
+          await delay(50);
+
+          // Odeslání souboru do zařízení
+          await mp().sendFile(fileName, content, false);
+
+          await delay(300);
+          
+          await mp().sendData('\r\n');
+          
+          await delay(400);
+          
+          mp().mute_terminal = false;
+        })
+        .catch(error => {
+          console.error("Chyba při načítání souboru:", error);
+          //alert("Chyba při načítání souboru: " + error.message);
+          show_modal_message('Chyba při načítání souboru.', error.message);
+        });
+    }
+    
+    
+    
+    async function libs_download_to_mcu() {
+      
+      if (!isEditorConnected()) {
+        show_modal_message('Zařízení nepřipojeno.', 'Připojte zařízení pomocí USB nebo Bluetooth.');
+        return;
+      }
+
+      const baseDir = "lib_" + userSettings.processor + "/"; // např. "lib_ESP32/"
+      const listURL = baseDir + "files.lst";
+
+      try {
+        // 2) stáhni přehled souborů
+        const cfgText = await (await fetch(listURL)).text();
+
+        // 3) projdi jednotlivé řádky
+        for (const raw of cfgText.split(/\r?\n/)) {
+          const line = raw.trim();
+          if (!line || line.startsWith("#")) continue;   // přeskoč komentáře / prázdné řádky
+
+          const [src, dest = "/"] = line.split(";").map(p => p.trim());
+          if (!src || !dest) continue;                  // ochrana proti špatnému řádku
+
+          // 4) nahraj soubor do zařízení
+          await sendFileToDevice(baseDir + src, dest);
+        }
+
+        await mp().sendData("\r\n");
+      } catch (e) {
+        console.error("Chyba při čtení files.lst:", e);
+        show_modal_message("Chyba", "Nepodařilo se načíst konfiguraci knihoven.");
+      }
+    }
+
+
+    
+    
+    
+    // Pomocná funkce: přepiš utime -> bletime jen tam, kde to dává smysl
+    function rewriteUtimeToBletime(src) {
+      let code = src;
+
+      // 1) from utime import ...  ->  from bletime import ...
+      code = code.replace(/(^|\n)\s*from\s+utime\s+import\s+/g, (m) => m.replace('utime', 'bletime'));
+
+      // 2) import utime as X  ->  import bletime as X
+      code = code.replace(/(^|\n)\s*import\s+utime\s+as\s+([A-Za-z_][A-Za-z0-9_]*)/g, 'import bletime as $2');
+
+      // 3) import ... , utime , ...  ->  ... , bletime as utime , ...
+      code = code.replace(/(^|\n)\s*import\s+([^\n#]+)/g, (full, nl, list) => {
+        // rozpadni seznam modulů a uprav jen token 'utime'
+        const parts = list.split(',').map(s => s.trim());
+        let changed = false;
+        const mapped = parts.map(p => {
+          // už přepsané nech na pokoji
+          if (/^bletime(\s+as\s+utime)?$/.test(p)) return p;
+          // utime bez aliasu
+          if (p === 'utime') { changed = true; return 'bletime as utime'; }
+          // utime s aliasem: 'utime as X' -> 'bletime as X'
+          const m = p.match(/^utime\s+as\s+([A-Za-z_][A-Za-z0-9_]*)$/);
+          if (m) { changed = true; return `bletime as ${m[1]}`; }
+          return p;
+        });
+        if (!changed) return full; // nic k úpravě
+        return `${nl}import ${mapped.join(', ')}`;
+      });
+
+      // 4) jednoduché 'import utime' -> 'import bletime as utime'
+      code = code.replace(/(^|\n)\s*import\s+utime\s*(?=($|\n|#))/g, (m) => m.replace('import utime', 'import bletime as utime'));
+
+      // 5) Pokud se někde používá utime.* bez importu, doplň na začátek 'import bletime as utime'
+      const hasUtimeRef = /\butime\s*\./.test(code);
+      const hasUtimeImport =
+        /(^|\n)\s*import\s+utime(\s|$)/.test(code) ||
+        /(^|\n)\s*from\s+utime\s+import\s+/.test(code) ||
+        /(^|\n)\s*import\s+bletime\s+as\s+utime(\s|$)/.test(code) ||
+        /(^|\n)\s*from\s+bletime\s+import\s+/.test(code);
+      if (hasUtimeRef && !hasUtimeImport) {
+        code = `import bletime as utime\r` + code;
+      }
+
+      return code;
+    }
+
+
+    
+    
+    
+    // Funkce pro spuštění kódu – využívá novou komunikaci
+    async function runCode() {
+      if (!isEditorConnected()){
+        show_modal_message('Zařízení nepřipojeno.', 'Připojte zařízení pomocí USB nebo Bluetooth.');
+        return;
+      }
+
+      mp().mute_terminal = true;
+
+      // stop uživatelského kódu
+      await mp().sendData('\x03');
+      await delay(250);
+
+      Blockly.Python.INFINITE_LOOP_TRAP = null;
+
+      let save_code = "";
+      if (projectMode === "blocks"){
+        save_code = Blockly.Python.workspaceToCode(demoWorkspace);
+      } else {
+        const i = textProject.activeIndex;
+        if (i < 0){
+          show_modal_message('Textový režim', 'Není otevřen žádný tab.');
+          mp().mute_terminal = false;
+          return;
+        }
+        save_code = textProject.files[i].session
+          ? textProject.files[i].session.getValue()
+          : (textProject.files[i].content || '');
+      }
+
+      // Pokud běží BLE, přepiš utime -> bletime
+      if (getActiveLink && getActiveLink() === 'ble') {
+        save_code = rewriteUtimeToBletime(save_code);
+      }
+
+      // CRLF + ASCII filtrace
+      save_code = save_code.replace(/\r\n|\r|\n/g, "\r");
+      save_code = delete_non_ascii(save_code);
+
+      if (document.getElementById("autostart").checked) {
+        save_code = "#autostart*\r" + save_code;
+      }
+
+      term.scrollToBottom();
+
+      // nahraj jen idecode
+      await mp().sendFile("idecode", save_code, true);
+      await delay(250);
+
+      mp().mute_terminal = false;
+      await mp().sendCommand('run_code()');
+      await delay(20);
+    }
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    // Funkce pro zastavení kódu
+    async function stopCode() {
+        if (isEditorConnected())
+        {
+          await mp().sendData('\x03');
+          await delay(250);
+          //await mp().sendData('\x03');
+          //await delay(100);
+          await mp().sendCommand('stop_code()');
+          await delay(50);
+          term.scrollToBottom();
+        }
+        else
+        {
+          show_modal_message('Zařízení nepřipojeno.', 'Připojte zařízení pomocí USB nebo Bluetooth.');
+        }
+    }
+    
+    
+    // Funkce pro restart procesoru
+    async function ResetCPU() {
+        if (isEditorConnected())
+        {
+          await mp().sendData('\x03');
+          await delay(50);
+          await mp().sendData('\x03');
+          await delay(20);
+          await mp().sendData('\x04');
+          await delay(10);
+          term.scrollToBottom();
+        }
+        else
+        {
+          show_modal_message('Zařízení nepřipojeno.', 'Připojte zařízení pomocí USB nebo Bluetooth.');
+        }
+    }
+    
+    
+    
+    // Funkce pro zastavení kódu
+    async function get_Info() {
+        if (isEditorConnected())
+        {
+          await mp().sendData('\x03');
+          await delay(150);
+          await mp().sendData('\x03');
+          await delay(100);
+          await mp().sendCommand('info()');
+          await delay(50);
+          term.scrollToBottom();
+        }
+        else
+        {
+          show_modal_message('Zařízení nepřipojeno.', 'Připojte zařízení pomocí USB nebo Bluetooth.');
+        }
+    }
+    
+    
+    
+    
+    
+    
+    // Funkce pro vibraci
+    function phone_vibrate() {
+      try {
+        navigator.vibrate(vibro_time);
+      } catch {
+        console.log("Cannot vibrate");
+      }
+    }
+    
+    // Funkce pro odstranění diakritiky
+    function delete_non_ascii(in_string) {
+      let sdiak = "ÁÂÄĄáâäąČčĆćÇçĈĉĎĐďđÉÉĚËĒĖĘéěëēėęĜĝĞğĠġĢģĤĥĦħÍÎíîĨĩĪīĬĭĮįİıĴĵĶķĸĹĺĻļĿŀŁłĹĽĺľŇŃŅŊŋņňńŉÓÖÔŐØŌōóöőôøŘřŔŕŖŗŠšŚśŜŝŞşŢţŤťŦŧŨũŪūŬŭŮůŰűÚÜúüűŲųŴŵÝYŶŷýyŽžŹźŻżß;@*%!+-$&?~";
+      let bdiak = "AAAAaaaaCcCcCcCcDDddEEEEEEEeeeeeeGgGgGgGgHhHhIIiiIiIiIiIiIiJjKkkLlLlLlLlLLllNNNNnnnnnOOOOOOooooooRrRrRrSsSsSsSsTtTtTtUuUuUuUuUuUUuuuUuWwYYYyyyZzZzZzs;@*%!+-$&?~";
+      let tx = "";
+      for (let p = 0; p < in_string.length; p++) {
+        if (sdiak.indexOf(in_string.charAt(p)) !== -1) {
+          tx += bdiak.charAt(sdiak.indexOf(in_string.charAt(p)));
+        } else {
+          tx += in_string.charAt(p);
+        }
+      }
+      return tx;
+    }
+    
+    // Funkce pro získání parametru z URL
+    function getUrlParameter(name) {
+      name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+      var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+      var results = regex.exec(window.location.search);
+      return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+    }
+    
+    // Funkce pro načtení toolboxu
+    function loadToolbox(url) {
+      var workspace = Blockly.getMainWorkspace();
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', url, false);
+      xhr.onreadystatechange = function() {
+        if(xhr.readyState == 4 && xhr.status == 200) {
+          var data = xhr.responseText;
+          var xmlElement = document.getElementById('toolbox');
+          xmlElement.innerHTML = data.replace('<xml id="toolbox" style="display: none" >',"").replace("</xml>","");
+          workspace.updateToolbox(data);
+          console.log("Toolbox loading succesfull.");
+        }
+      }
+      xhr.send();
+    }
+    
+    
+
+    
+    
+    
+    async function custom_blocks_select() {
+      try {
+        // 1) načti uložené nastavení
+        const saved = localStorage.getItem("userSettings");
+        userSettings = saved ? JSON.parse(saved) : {};
+
+        // 2) základní toolbox
+        const baseXML = await fetchToolboxFile(toolboxFilename);
+        originalToolboxXML = baseXML;
+
+        /* 3) SLUČ ho s rozšířeními */
+        const fullXML = baseXML.replace(/<\/xml>\s*$/, "") +
+                        addons_toolbox +
+                        "</xml>";
+
+        // 4) zobraz dialog s plným obsahem
+        const filterRes = await showCategoryFilterDialog(fullXML);
+
+        /* ignoruj dismiss ---------------------------- */
+        if (!filterRes || filterRes.isDismissed || !filterRes.isConfirmed) {
+          console.log("Okno zavřeno - ponechávám původní toolbox.");
+          return; // zachovej stávající toolbox
+        }
+
+        userSettings.filters = filterRes.value || {};
+
+        localStorage.setItem("userSettings", JSON.stringify(userSettings));
+
+        // 5) aplikuj filtr
+        const filtered = filterToolboxWithFilters(fullXML, userSettings.filters);
+
+        const ws  = Blockly.getMainWorkspace();
+        const el  = document.getElementById('toolbox');
+        el.innerHTML = filtered
+              .replace('<xml id="toolbox" style="display: none">',"")
+              .replace("</xml>","");
+        ws.updateToolbox(filtered);
+
+        console.log("Toolbox loading succesfull.");
+      } catch (e) {
+        console.error("Chyba při custom_blocks_select:", e);
+        Swal.fire("Chyba", "Nastala chyba při nastavení zobrazení bloků.", "error");
+      }
+    }
+    
+    
+    
+    // === ESPIDE: přepnutí procesoru a přestavba toolboxu =================
+    async function switchProcessorAndReloadToolbox(newProc) {
+      try {
+        if (!newProc) return;
+
+        // nic nedělej, pokud už je nastaven
+        if (userSettings && userSettings.processor === newProc) return;
+
+        // nastavit userSettings + UI
+        userSettings = userSettings || {};
+        userSettings.processor = newProc;
+        localStorage.setItem("userSettings", JSON.stringify(userSettings));
+        const procSelect = document.getElementById('processorDropdown');
+        if (procSelect) procSelect.value = newProc;
+
+        // vybrat soubor toolboxu
+        const filename = (typeof getToolboxFilename === "function")
+          ? getToolboxFilename(newProc)
+          : (TOOLBOX_MAP && TOOLBOX_MAP[newProc]) || null;
+
+        if (!filename) {
+          console.warn("switchProcessorAndReloadToolbox: neznámý processor nebo chybí mapování:", newProc);
+          return;
+        }
+
+        // stáhni toolbox a přestav "originalToolboxXML"
+        const toolboxXML = await fetchToolboxFile(filename);
+        originalToolboxXML = toolboxXML;
+
+        // spoj základ + stávající rozšíření
+        const fullToolboxXML = originalToolboxXML.replace(/<\/xml>\s*$/, "")
+                               + (addons_toolbox || "")
+                               + "</xml>";
+
+        // aplikuj filtry
+        const filteredXML = filterToolboxWithFilters(fullToolboxXML, (userSettings && userSettings.filters) || {});
+
+        // promítnout do DOM a workspace
+        const workspace = Blockly.getMainWorkspace();
+        const xmlElement = document.getElementById('toolbox');
+        xmlElement.innerHTML = filteredXML
+          .replace('<xml id="toolbox" style="display: none" >', "")
+          .replace("</xml>", "");
+        workspace.updateToolbox(filteredXML);
+
+        console.log("Processor switched to:", newProc);
+      } catch (e) {
+        console.error("switchProcessorAndReloadToolbox failed:", e);
+        Swal.fire("Chyba", "Nepodařilo se přepnout procesor: " + (e?.message || e), "error");
+      }
+    }
+    // =====================================================================
+
+    
+    
+    
+    
+    
+    
+    
+    // --- Chybejici ALERT v Electronu řešíme zde ---
+    window.alert = (msg) => Swal.fire({icon:'info', title: msg});
+    
+    
+    
+    
+    // --- Inicializace aplikace ---
+    (function() {
+      window.onload = async function() {
+        
+        ace.config.set('basePath', 'js');
+        ace.config.set('modePath', 'js');
+        ace.config.set('themePath', 'js');
+    
+        editor = ace.edit("editor");
+        ace.require("ace/ext/language_tools");
+        editor.setTheme("ace/theme/chrome");
+        editor.session.setMode("ace/mode/python");
+        editor.setOptions({
+          enableBasicAutocompletion: true,
+          enableSnippets: true,
+          enableLiveAutocompletion: false,
+          showInvisibles: true,
+          fixedWidthGutter: true,
+          showPrintMargin: false
+        });
+    
+        Split(['#editor_div', '#terminal_div'], {
+          direction: 'vertical',
+          sizes: [85, 15],
+          gutterSize: 6,
+          cursor: 'row-resize',
+          onDragEnd: function(sizes) {
+            var size = calculate_size(self);
+            term.resize(size[0], size[1]);
+            editor.resize();
+            onresize();
+          },
+          onDrag: function(sizes) {
+            var size = calculate_size(self);
+            term.resize(size[0], size[1]);
+            editor.resize();
+            onresize();
+          }
+        });
+    
+        var size = calculate_size(self);
+        term = new Terminal({
+          cols: size[0],
+          rows: size[1],
+          useStyle: true,
+          screenKeys: true,
+          cursorBlink: false
+        });
+        term.open(document.getElementById("term"), false);  // Vypne auto-focus
+        
+        
+        
+        
+        // Vytvoření instance nové komunikace
+        mpSerial = new MicroPythonSerial(term);
+        
+        
+        
+        
+        
+        // Obsluha tlačítka pro připojení/odpojení
+        connectButton = document.getElementById('SerialConnectButton');
+        bleConnectButton = document.getElementById('BLE_SerialConnectButton');
+
+
+          connectButton.addEventListener("mouseenter", () => {
+            switch (currentState) {
+              case STATE.DISCONNECTED: updateButton(STATE.DISCONNECTED_HOVER); break;
+              case STATE.CONNECTED: updateButton(STATE.CONNECTED_HOVER); break;
+              case STATE.ERROR: updateButton(STATE.ERROR_HOVER); break;
+            }
+          });
+
+          connectButton.addEventListener("mouseleave", () => {
+            switch (currentState) {
+              case STATE.DISCONNECTED_HOVER: updateButton(STATE.DISCONNECTED); break;
+              case STATE.CONNECTED_HOVER: updateButton(STATE.CONNECTED); break;
+              case STATE.ERROR_HOVER: updateButton(STATE.ERROR); break;
+            }
+          });
+
+
+
+
+
+
+
+
+          if (bleConnectButton) bleUpdateButton(("bluetooth" in navigator) ? STATE.DISCONNECTED : STATE.ERROR);
+
+
+
+            // Hover efekty pro BLE (stejné chování jako USB)
+            if (bleConnectButton) {
+              bleConnectButton.addEventListener("mouseenter", () => {
+                switch (bleState) {
+                  case STATE.DISCONNECTED: bleUpdateButton(STATE.DISCONNECTED_HOVER); break;
+                  case STATE.CONNECTED:    bleUpdateButton(STATE.CONNECTED_HOVER);    break;
+                  case STATE.ERROR:        bleUpdateButton(STATE.ERROR_HOVER);        break;
+                }
+              });
+              bleConnectButton.addEventListener("mouseleave", () => {
+                switch (bleState) {
+                  case STATE.DISCONNECTED_HOVER: bleUpdateButton(STATE.DISCONNECTED); break;
+                  case STATE.CONNECTED_HOVER:    bleUpdateButton(STATE.CONNECTED);    break;
+                  case STATE.ERROR_HOVER:        bleUpdateButton(STATE.ERROR);        break;
+                }
+              });
+            }
+            
+            
+        
+        // Inicializuj ikony okamžitě (nečekej na nic dalšího)
+        if (connectButton) {
+          if ("serial" in navigator) {
+            updateButton(STATE.DISCONNECTED);
+            connectButton.disabled = false;
+          } else {
+            updateButton(STATE.ERROR);
+            connectButton.disabled = true;
+          }
+        }
+
+        if (bleConnectButton) {
+          if ("bluetooth" in navigator) {
+            bleUpdateButton(STATE.DISCONNECTED);
+            bleConnectButton.disabled = false;
+          } else {
+            bleUpdateButton(STATE.ERROR);
+            bleConnectButton.disabled = true;
+          }
+        }
+            
+            
+            
+
+        
+        
+    
+        // Přidána interaktivní obsluha terminálu – psaní příkazů
+        term.on('data', function(data) {
+            if (isEditorConnected())
+            {
+              mp().sendData(data);
+            }
+        });
+    
+        Blockly.HSV_SATURATION = 0.70;
+        Blockly.HSV_VALUE = 0.80;
+    
+        blocklyArea = document.getElementById('editor_div');
+        blocklyDiv = document.getElementById('blocklyDiv');
+        demoWorkspace = Blockly.inject('blocklyDiv', {
+          toolbox: document.getElementById('toolbox'),
+          zoom: {
+            controls: true,
+            wheel: true,
+            startScale: 1.0,
+            maxScale: 3,
+            minScale: 0.3,
+            scaleSpeed: 1.2,
+            pinch: true
+          },
+          trashcan: true,
+          media: './media/'
+        });
+        window.addEventListener('resize', onresize, false);
+        onresize();
+        Blockly.svgResize(demoWorkspace);
+        
+        
+    
+        (function(){
+          const GEN_DELAY_MS = 100;           // debounce
+          let dragDepth = 0;                  // zanoření dragů
+          let timer = null;
+          let pending = false;
+          let lastCode = "";
+
+          function isUi(ev){
+            // kompatibilně přes property i helper
+            return (ev && ev.isUiEvent) || (Blockly.Events && Blockly.Events.isUiEvent && Blockly.Events.isUiEvent(ev));
+          }
+
+          function scheduleGen(){
+            if (dragDepth > 0){ pending = true; return; }
+            if (timer) { pending = true; return; }
+            timer = setTimeout(runGen, GEN_DELAY_MS);
+          }
+
+          function runGen(){
+            timer = null;
+            if (dragDepth > 0){ pending = true; return; }
+            if (typeof projectMode !== 'undefined' && projectMode !== 'blocks') return;
+
+            const code = Blockly.Python.workspaceToCode(demoWorkspace);
+            if (code !== lastCode){
+              lastCode = code;
+              editor.setValue(code, 1);
+            }
+            if (pending){ pending = false; scheduleGen(); }
+          }
+
+          function onWsChange(ev){
+            if (!ev) return;
+            if (isUi(ev)) return;
+
+            switch (ev.type){
+              case Blockly.Events.BLOCK_DRAG:
+                // v nových verzích je k dispozici isStart
+                if (ev.isStart) { dragDepth++; }
+                else { dragDepth = Math.max(0, dragDepth - 1); scheduleGen(); }
+                return;
+
+              case Blockly.Events.FINISHED_LOADING:
+              case Blockly.Events.BLOCK_CREATE:
+              case Blockly.Events.BLOCK_DELETE:
+              case Blockly.Events.BLOCK_CHANGE:
+              case Blockly.Events.BLOCK_MOVE:
+                scheduleGen();
+                return;
+
+              default:
+                // jiné systémové eventy ignoruj
+                return;
+            }
+          }
+
+          demoWorkspace.addChangeListener(onWsChange);
+        })();
+        
+        
+        
+        
+        
+        
+        demoWorkspace.registerButtonCallback('open_image_editor', function(button) {
+          window.open('img_editor.html','Editor obrázků','left=300,top=140,width=260,height=340,popup');
+        });
+        
+        
+        
+        
+        
+        
+        
+        const rbBlocks = document.getElementById('modeBlocks');
+        const rbText   = document.getElementById('modeText');
+        rbBlocks.addEventListener('change', ()=> rbBlocks.checked && switchUITo("blocks"));
+        rbText  .addEventListener('change', ()=> rbText.checked   && switchUITo("text"));
+        
+        // --- Inicializace Ace pro textové taby po onloadu (naváže se tam, kde se inituje původní Ace/Terminal) ---
+        function initAceText(){
+              aceText = ace.edit("aceText");
+              ace.require("ace/ext/language_tools");
+
+              // typy pro session i správný konstruktor UndoManager
+              AceEditSession = ace.require("ace/edit_session").EditSession;
+              const umMod = ace.require("ace/undomanager");
+              AceUndoManagerCtor = umMod && umMod.UndoManager ? umMod.UndoManager : null;
+
+              aceText.setTheme("ace/theme/chrome");
+              aceText.setOptions({
+                enableBasicAutocompletion: true,
+                enableSnippets: true,
+                enableLiveAutocompletion: false,
+                showInvisibles: true,
+                fixedWidthGutter: true,
+                showPrintMargin: false
+              });
+
+              aceText.on('change', ()=>{
+                const i = textProject.activeIndex;
+                if (i >= 0){
+                  textProject.files[i].dirty = true;
+                  saveTextProjectToLS();
+                  renderTabs();
+                }
+              });
+
+              restoreTextProjectFromLS();
+              if (textProject.files.length === 0) ensureOneDefaultTab();
+
+              activateTab(Math.max(0, textProject.activeIndex));
+              renderTabs();
+              setupDnDForEditors();
+        }
+        
+        
+        // uvnitř window.onload (kde už inicializuješ `editor` a `term`) přidej:
+        initAceText();
+        
+        
+        
+        const savedMode = localStorage.getItem("espide.projectMode") || "blocks";
+        document.getElementById(savedMode==="text" ? "modeText" : "modeBlocks").checked = true;
+        switchUITo(savedMode);
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        try {
+            // Načtení parametrů z URL pro návody
+            const params = new URL(window.location.href).searchParams;  // :contentReference[oaicite:1]{index=1}
+            const toolboxParam = params.get('toolbox');
+            const programParam = params.get('program');
+            
+            
+            // Načtení uložených nastavení z localStorage
+            var saved = localStorage.getItem("userSettings");
+            if (saved) {
+              userSettings = JSON.parse(saved);
+              console.log("Načteno uživatelské nastavení :" + saved);
+            } else {
+              userSettings = {};
+              console.log("Uživatelské nastavení nenalezeno. Použito výchozí nastavení");
+            }
+            
+            // Inicializace dropdownu
+            const procSelect = document.getElementById('processorDropdown');
+            procSelect.addEventListener('change', e => updateProcessor(e.target.value));
+            
+            
+            // Nastav počáteční hodnotu podle localStorage (nebo výchozí ESP32)
+            procSelect.value = (userSettings && userSettings.processor) || 'ESP32';
+            
+            // Podle nastaveneho procesoru zobraz nebo skryj bluetooth tlačítko
+            updateBleVisibility(procSelect.value);
+            
+            
+            
+            // 2) Pokud je toolboxParam, použij ho místo dialogu
+            if (toolboxParam) {
+              toolboxFilename = toolboxParam;  // externí override
+            } else if (userSettings.processor && TOOLBOX_MAP[userSettings.processor]) {
+              toolboxFilename = TOOLBOX_MAP[userSettings.processor];
+            } else {
+              // Uživateli ještě procesor nenastavujeme – klasický dialog
+              //const procResult = await showProcessorDialog();
+              //userSettings.processor = procResult.value.processor;
+              userSettings.processor = "ESP32";
+              
+              document.getElementById('processorDropdown').value = userSettings.processor;
+              //userSettings.processor = "ESPBIT";
+              toolboxFilename = getToolboxFilename(userSettings.processor);
+            }
+            
+            
+            
+            var toolboxXML = await fetchToolboxFile(toolboxFilename);
+            originalToolboxXML = toolboxXML; // uložení původního obsahu
+
+            // Pokud v uložených nastaveních chybí filtrovací konfigurace, zobrazíme dialog s nastavením kategorií/podkategorií
+            if (!userSettings.filters) {
+              //const filterResult = await showCategoryFilterDialog(originalToolboxXML);
+              //userSettings.filters = filterResult.value;
+              userSettings.filters = {};
+            }
+
+            // Uložíme nastavení do localStorage
+            localStorage.setItem("userSettings", JSON.stringify(userSettings));
+
+
+            safeLoadExtensionsOnStartup();    // Načte nové bloky z rozšíření
+
+
+            /* spoj základ + rozšíření */
+            var fullToolboxXML = originalToolboxXML.replace(/<\/xml>\s*$/, "")
+                                   + addons_toolbox
+                                   + "</xml>";
+
+            // Aplikujeme filtr na SPOJENÝ toolbox
+            var filteredXML = filterToolboxWithFilters(fullToolboxXML, userSettings.filters || {});
+
+            var workspace = Blockly.getMainWorkspace();
+            var xmlElement = document.getElementById('toolbox');
+            xmlElement.innerHTML = filteredXML
+                    .replace('<xml id="toolbox" style="display: none" >',"")
+                    .replace("</xml>","");
+            workspace.updateToolbox(filteredXML);
+            console.log("Toolbox loading succesfull (start).");
+            
+            
+            // 4) Pokud je programParam, načti XML programu
+            if (programParam) {
+              try {
+                const resp = await fetch(programParam);
+                let rawText = await resp.text();
+
+                // vyloupnout payload + čisté XML
+                const { payload, strippedText } = peelExtensionsComment(rawText);
+
+                // 4a) přepni processor dřív, než integruješ rozšíření
+                if (payload?.processor && payload.processor !== (userSettings && userSettings.processor)) {
+                  await switchProcessorAndReloadToolbox(payload.processor);
+                }
+
+                // 4b) integruj rozšíření
+                if (payload?.extensions && Array.isArray(payload.extensions)) {
+                  mergeAndIntegrateExtensionsFromPayload(payload);
+                }
+
+                // 4c) teď teprve načti XML do workspace
+                const xmlDom = Blockly.Xml.textToDom(strippedText);
+                demoWorkspace.clear();
+                Blockly.Xml.domToWorkspace(xmlDom, demoWorkspace);
+
+                // sync textového editoru
+                editor.setValue(Blockly.Python.workspaceToCode(demoWorkspace), 1);
+              } catch (e) {
+                console.error('Chyba při načítání programu:', e);
+                Swal.fire("Chyba", "Program se nepodařilo načíst: " + (e?.message || e), "error");
+              }
+            }
+            
+            
+
+        } catch (e) {
+            console.error("Chyba při inicializaci:", e);
+            Swal.fire("Chyba", "Nastala chyba při inicializaci aplikace.", "error");
+        }
+        
+        
+        
+        
+        
+        if ("serial" in navigator) {
+              
+            connectButton.addEventListener("click", () => withConnectLock(async () => {
+              if (currentState === STATE.DISCONNECTED || currentState === STATE.DISCONNECTED_HOVER || currentState === STATE.ERROR || currentState === STATE.ERROR_HOVER) {
+                try {
+                  await ensureExclusive('usb');
+                  await mpSerial.connect();
+
+                  if (!mpSerial.port) {
+                    term.writeln("**Nebyl vybrán žádný port.**");
+                    updateButton(STATE.ERROR);
+                    return;
+                  }
+                  updateButton(STATE.CONNECTED);
+                  activeLink = 'usb';
+                  closeQuick();
+                } catch(e){
+                  console.error("Chyba při připojení:", e);
+                  updateButton(STATE.ERROR);
+                }
+              } else if (currentState === STATE.CONNECTED || currentState === STATE.CONNECTED_HOVER) {
+                try {
+                  await mpSerial.disconnect();
+                  updateButton(STATE.DISCONNECTED);
+                  activeLink = isBleConnected() ? 'ble' : 'none';
+                } catch(e){
+                  console.error("Chyba při odpojení:", e);
+                  updateButton(STATE.ERROR);
+                }
+              }
+            }));
+              
+            navigator.serial.addEventListener("disconnect", (event) => {
+              if (mpSerial.port && event.target === mpSerial.port) {
+                console.warn("Tvé zařízení bylo odpojeno.");
+                updateButton(STATE.ERROR);
+                if (activeLink === 'usb') activeLink = isBleConnected() ? 'ble' : 'none';
+                mpSerial.reader = null; mpSerial.writer = null;
+                mpSerial.disconnect(); mpSerial.port = null;
+                openQuick(); // zobraz rychlý panel po náhlém odpojení
+              }
+            });
+          
+              navigator.serial.addEventListener("connect", (event) => {
+                console.log("Nové zařízení připojeno");
+                if (currentState === STATE.DISCONNECTED || currentState === STATE.DISCONNECTED_HOVER || currentState === STATE.ERROR || currentState === STATE.ERROR_HOVER) {
+                    Swal.fire({
+                      title: "Zařízení připojeno!",
+                      text: "Chcete se k němu připojit?",
+                      showCancelButton: true,
+                      confirmButtonText: "Ano",
+                      cancelButtonText: "Ne",
+                      backdrop: false,       // ← přestane zakrývat celé UI
+                      heightAuto: false,     // ← SweetAlert2 už neupraví výšku <body>
+                      willClose: () => {     // ← rychlý refresh editorů po zavření
+                        requestAnimationFrame(() => {
+                          if (projectMode === "text") { try { aceText && aceText.resize(); } catch(_){} }
+                          else { try { onresize(); Blockly.svgResize(demoWorkspace); } catch(_){} }
+                        });
+                      }
+                    }).then(async (result) => {
+                      if (result.isConfirmed) {
+                        if (currentState === STATE.DISCONNECTED || currentState === STATE.DISCONNECTED_HOVER || currentState === STATE.ERROR || currentState === STATE.ERROR_HOVER) {
+                        try {
+                              await mpSerial.connect();
+
+                              if (!mpSerial.port) {
+                                term.writeln("**Nebyl vybrán žádný port.**");
+                                updateButton(STATE.ERROR);
+                                return;
+                              }
+                              updateButton(STATE.CONNECTED);
+                              
+                              try { await mpBLE?.disconnect(); } catch (_) {}
+                              mpBLE = null; // zahoď starou instanci
+                              
+                              activeLink = 'usb';
+                              closeQuick();
+                              
+                              
+                            } catch(e){
+                              console.error("Chyba při připojení:", e);
+                              updateButton(STATE.ERROR);
+                            }
+                        }
+                        //connectButton.click();  // Simuluj kliknutí na připojovací tlačítko
+                      }
+                    });
+                  }
+               });
+               
+               
+            updateButton(STATE.DISCONNECTED);
+          }
+          else
+          {
+            updateButton(STATE.ERROR);
+          }
+          
+          
+          
+          
+          
+
+
+
+
+
+
+
+
+
+            // Přepínací logika a připojení BLE
+            if (bleConnectButton) {
+              // Inicializační stav dle podpory prohlížeče
+              if (!("bluetooth" in navigator)) {
+                bleConnectButton.disabled = true;
+                bleUpdateButton(STATE.ERROR);
+              } else {
+                bleUpdateButton(STATE.DISCONNECTED);
+              }
+
+                bleConnectButton.addEventListener("click", () => withConnectLock(async () => {
+                  try {
+                    if (bleState === STATE.DISCONNECTED || bleState === STATE.DISCONNECTED_HOVER
+                        || bleState === STATE.ERROR || bleState === STATE.ERROR_HOVER) {
+
+                      await ensureExclusive('ble');
+                      
+                      try { await mpBLE?.disconnect(); } catch (_) {}
+                      mpBLE = null;                               // zahoď starou instanci
+                      activeLink = (typeof isUsbConnected === 'function' && isUsbConnected()) ? 'usb' : 'none';
+                      
+                      if (!mpBLE) mpBLE = new MicroPythonBLE(term, (s) => {
+                        bleUpdateButton(s);
+                        try { window.__espideGamepad?.updateIcon(); } catch(_) {}
+                        
+                        if (s === STATE.CONNECTED) activeLink = 'ble';
+                        if (s === STATE.DISCONNECTED || s === STATE.ERROR) {
+                            activeLink = (typeof isUsbConnected === 'function' && isUsbConnected()) ? 'usb' : 'none';
+                            if (!bleUserDisconnecting) openQuick(); // auto-open jen při náhlém odpojení
+                        }
+                      });
+                      
+                      await mpBLE.connect();
+                      bleUpdateButton(STATE.CONNECTED);
+                      activeLink = 'ble';
+                      
+                      try { window.__espideGamepad?.updateIcon(); } catch(_) {}
+                      
+                      closeQuick()
+
+                    } else if (bleState === STATE.CONNECTED || bleState === STATE.CONNECTED_HOVER) {
+                      bleUserDisconnecting = true;
+                      try { if (mpBLE) await mpBLE.disconnect(); } finally { bleUserDisconnecting = false; }
+                      bleUpdateButton(STATE.DISCONNECTED);
+                      activeLink = 'usb';
+                    }
+                  } catch (err) {
+                      console.error("BLE error:", err);
+
+                      // Bezpečně vytáhni text chyby (vyhne se to e.includes → TypeError)
+                      const msg  = (err && typeof err === 'object' && 'message' in err) ? err.message : String(err);
+                      const name = (err && err.name) ? err.name : '';
+
+                      // Uživatel zavřel výběr zařízení → jen zůstaň odpojen
+                      if (name === 'NotFoundError' || /User cancelled|No device selected/i.test(msg)) {
+                        bleUpdateButton(STATE.DISCONNECTED);
+                        return;
+                      }
+
+                      // Tvrdý úklid po chybě, aby šlo znovu ručně připojit bez reloadu
+                      try { await mpBLE?.disconnect(); } catch (_) {}
+                      mpBLE = null;                               // zahoď starou instanci
+                      activeLink = (typeof isUsbConnected === 'function' && isUsbConnected()) ? 'usb' : 'none';
+
+                      // Zobraz chybovou hlášku a nech stav jako DISCONNECTED (žádný autoreconnect)
+                      show_modal_message('Chyba Bluetooth připojení.', msg);
+                      bleUpdateButton(STATE.DISCONNECTED);
+                  }
+                }));
+            }
+            
+            
+            // Nepodporovany prohlizec
+            if ((!("serial" in navigator)) && (!("bluetooth" in navigator)))  {
+                show_modal_message('Nepodporovaný prohlížeč.', 'Váš prohlížeč nepodporuje WebSerial API ani WebBluetooth API. Pro správný chod ESP IDE popužijte aktuální verzi prohlížeče Chrome, Edge, Opera nebo Bluefy na Apple zařízeních.');
+            }
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+        
+        
+        
+        
+        
+    
+        //loadToolbox("toolbox.xml");
+    
+        // Zachování funkcí pro drag & drop, nahrávání a ukládání souborů (původní kód)
+        function showDropZone() {
+        // zobraz globální zónu jen pokud není otevřen správce rozšíření
+          if (document.getElementById('extensions_dialog')?.style.display !== 'block') {
+            document.getElementById('drop_zone').style.display = 'block';
+          }
+        }
+        
+        function hideDropZone() {
+          document.getElementById('drop_zone').style.display = 'none';
+        }
+        // FM guard: je-li otevřen FileManager, ignoruj globální DnD z index.html
+        window.__FM_ACTIVE = window.__FM_ACTIVE || false;
+        function preventDefaults(e) {
+          if (window.__FM_ACTIVE || projectMode !== 'blocks') return;
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+          document.addEventListener(eventName, preventDefaults, false);
+        });
+
+        document.addEventListener('dragenter', function(e) {
+          if (window.__FM_ACTIVE || projectMode !== 'blocks') return;
+          showDropZone();
+        });
+
+        document.addEventListener('dragleave', function(e) {
+          if (window.__FM_ACTIVE || projectMode !== 'blocks') return;
+          if (e.clientX === 0 && e.clientY === 0) { hideDropZone(); }
+        });
+        document.addEventListener('drop', async function(e) {
+          if (window.__FM_ACTIVE || projectMode !== 'blocks') return;
+          hideDropZone();
+          var files = e.dataTransfer.files;
+          if (files.length > 0) {
+            var file = files[0];
+            document.getElementById("save_filename").value = file.name.replace(".xml", "").replace(".blk", "");
+            var reader = new FileReader();
+            reader.onload = async function(e) {
+              try {
+                var contents = e.target.result;
+
+                const { payload, strippedText } = peelExtensionsComment(contents);
+
+                // 4a) přepni processor před integrací rozšíření
+                if (payload?.processor && payload.processor !== (userSettings && userSettings.processor)) {
+                  await switchProcessorAndReloadToolbox(payload.processor);
+                }
+
+                // 4b) integruj rozšíření
+                if (payload?.extensions && Array.isArray(payload.extensions)) {
+                  mergeAndIntegrateExtensionsFromPayload(payload);
+                }
+
+                // 4c) načti XML
+                var xml = Blockly.Xml.textToDom(strippedText);
+                demoWorkspace.clear();
+                Blockly.Xml.domToWorkspace(xml, demoWorkspace);
+              } catch (err) {
+                show_modal_message('Chyba při načítání souboru.', err.message);
+              }
+            };
+
+            reader.readAsText(file);
+          }
+        });
+
+        document.addEventListener('dragover', function(e) {
+          if (window.__FM_ACTIVE || projectMode !== 'blocks') return;
+          if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+        });
+        
+        
+        
+        // --- drag&drop do zóny --------------------------------
+        const dropZone = document.getElementById("ext_drop");
+        ["dragenter","dragover"].forEach(ev=>dropZone.addEventListener(ev,e=>{
+          if (window.__FM_ACTIVE) return;
+          e.preventDefault(); e.stopPropagation(); dropZone.style.background="#e8eaf6";
+        }));
+        ["dragleave","drop"].forEach(ev=>dropZone.addEventListener(ev,e=>{
+          if (window.__FM_ACTIVE) return;
+          e.preventDefault(); e.stopPropagation(); dropZone.style.background="";
+        }));
+        dropZone.addEventListener("drop", e=>{
+          if (window.__FM_ACTIVE) return;
+          [...e.dataTransfer.files].forEach(f=>{
+            if(!f.name.endsWith(".newblk")) return;
+            const reader = new FileReader();
+            reader.onload = ev=>{
+              const raw = ev.target.result;
+              if (!raw.includes("<!toolbox!>")) {
+                 Swal.fire("Neplatné rozšíření",
+                           "Soubor musí obsahovat značku <!toolbox!>",
+                           "warning");
+                 return;
+              }
+              const [codeJS, toolboxXML=""] = raw.split("<!toolbox!>");
+              const baseName = f.name.replace(/\.newblk$/i,"");
+              extensions[baseName] = { js: codeJS, xml: toolboxXML, enabled:true };
+              refreshExtList();
+            };
+            reader.readAsText(f,"utf-8");
+          });
+        });
+        
+        
+        
+        // Preload obrázků pro připojovací tlačítko
+        usbImages.forEach(src => {
+            const img = new Image();
+            img.src = src;
+        });
+        
+        // Preload obrázků pro připojovací tlačítko
+        bleImages.forEach(src => {
+            const img = new Image();
+            img.src = src;
+        });
+        
+        
+        window.addEventListener('resize', function() {
+            var size = calculate_size(self);
+            term.resize(size[0], size[1]);
+        });
+        
+        
+        
+        
+        
+        
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      const qpBtn   = document.getElementById('quick_panel_button');
+      const qp      = document.getElementById('quick_panel');
+      const qpInner = document.getElementById('quick_panel_inner') || document.getElementById('quick_panel_row');
+
+      const elSerial = document.getElementById('SerialConnectButton');
+      const elBle    = document.getElementById('BLE_SerialConnectButton');
+      const elProc   = document.getElementById('processorDropdown');
+      const elMode   = document.getElementById('modeSwitch');
+
+      let qpInitDone = false;        // auto-open jen jednou po loadu
+      let qpWantedOpen = null;       // poslední známý stav uživatele (true/false)
+      let bleUserDisconnecting = false; // rozeznání ručního odpojení BLE
+
+
+
+      // Pořadí v panelu (můžeš libovolně změnit)
+      const panelOrder = [elProc, elMode, elSerial, elBle];
+
+      // Tvoje pevné X pozice v panelu
+      const FIXED_X = {
+        processorDropdown:        400,
+        modeSwitch:               205,
+        SerialConnectButton:       20,
+        BLE_SerialConnectButton:  130
+      };
+
+      function key(el){
+        return el?.id || '';
+      }
+
+      // Placeholdery + uložení původních inline stylů (jen jednou)
+      const placeholders = new Map();
+      const origStyle = new Map(); // klíč = element, hodnota = původní inline style string
+
+      function ensurePlaceholders(){
+        for (const el of panelOrder){
+          if (!el) continue;
+          if (!placeholders.has(el)){
+            const ph = document.createElement('span');
+            el.after(ph);
+            placeholders.set(el, ph);
+          }
+          if (!origStyle.has(el)){
+            // uložit původní inline styly (ne computed!) – přesně se tak vrátí
+            const s = el.getAttribute('style');
+            origStyle.set(el, s == null ? null : s);
+          }
+        }
+      }
+
+      function setPanelHeight(){
+        // výšku panelu nech klidně konstantní, nebo ji dopočítej podle nejvyššího prvku
+        const h = 44;
+        document.documentElement.style.setProperty('--qp-h', h + 'px');
+      }
+
+
+        function renderUsbIcon(){
+          if (!window.SerialConnectButton) return; // nebo elSerial
+          const el = document.getElementById('SerialConnectButton');
+          if (!el) return;
+          // currentState a usbImages už máš definované (stav + prefixed názvy) – viz tvé "Graficke tlacitko pripojeni"
+          el.style.backgroundImage = 'url("' + (usbImages[currentState] || usbImages[0]) + '")';
+        }
+
+        function renderBleIcon(){
+          const el = document.getElementById('BLE_SerialConnectButton');
+          if (!el) return;
+          el.style.backgroundImage = 'url("' + (bleImages[typeof bleState==='number'?bleState:0] || bleImages[0]) + '")';
+        }
+
+        function renderConnectIcons(){
+          try { renderUsbIcon(); } catch(_){}
+          try { renderBleIcon(); } catch(_){}
+        }
+
+
+
+
+      function moveToPanel(){
+        ensurePlaceholders();
+        for (const el of panelOrder){
+          if (!el || el.parentNode === qpInner) continue;
+          el.classList.add('in-panel');
+          qpInner.appendChild(el);
+          // pozice v panelu: absolutní X z FIXED_X, Y řeší CSS (bottom:8px)
+          const k = key(el);
+          if (k in FIXED_X) el.style.left = FIXED_X[k] + 'px';
+          el.style.bottom = '8px';
+          el.style.position = 'absolute';
+        }
+        setPanelHeight();
+        renderConnectIcons();
+      }
+
+      function restoreFromPanel(){
+        for (const el of panelOrder){
+          if (!el) continue;
+          const ph = placeholders.get(el);
+          if (!ph || !ph.parentNode) continue;
+
+          // odstranit panelovou třídu
+          el.classList.remove('in-panel');
+
+          // VRÁTIT přesně původní inline styly
+          const saved = origStyle.get(el);
+          if (saved === null){
+            // původně žádný inline style nebyl
+            el.removeAttribute('style');
+          } else {
+            el.setAttribute('style', saved);
+          }
+
+          // vrátit na původní místo v DOM
+          ph.parentNode.insertBefore(el, ph.nextSibling);
+        }
+        document.documentElement.style.removeProperty('--qp-h');
+        renderConnectIcons();
+      }
+
+      function openQuick(){
+          qp.classList.add('open');
+          document.body.classList.add('quick-open');
+          qpWantedOpen = true;
+          if (qpBtn) qpBtn.textContent = '▴';
+      }
+      
+      function closeQuick(){
+          qp.classList.remove('open');
+          document.body.classList.remove('quick-open');
+          qpWantedOpen = false;
+          if (qpBtn) qpBtn.textContent = '▾';
+      }
+
+      function layoutResponsive(){
+          const narrow = window.innerWidth <= 1150;
+          if (narrow){
+            moveToPanel();
+            if (!qpInitDone) {
+              // první vykreslení: otevři panel
+              openQuick();
+              if (qpBtn) qpBtn.style.display = 'block';
+              qpInitDone = true;
+            } else {
+              // další resize: respektuj poslední volbu uživatele
+              if (qpWantedOpen) openQuick(); else closeQuick();
+              if (qpBtn) qpBtn.style.display = 'block';
+            }
+          } else {
+            restoreFromPanel();
+            closeQuick();
+            if (qpBtn) qpBtn.style.display = 'none';
+          }
+          setTimeout(()=>{
+            try { if (window.demoWorkspace) { onresize(); Blockly.svgResize(demoWorkspace); } } catch(_){}
+            try { if (window.aceText) { aceText.resize(); } } catch(_){}
+          }, 80);
+      }
+
+      // Toggle (ponecháme)
+      if (qpBtn){
+        qpBtn.addEventListener('click', ()=>{
+          const isOpen = qp.classList.contains('open');
+          if (isOpen){ closeQuick(); }
+          else { moveToPanel(); openQuick(); }
+          setTimeout(()=>{
+            try { if (window.demoWorkspace) { onresize(); Blockly.svgResize(demoWorkspace); } } catch(_){}
+            try { if (window.aceText) { aceText.resize(); } } catch(_){}
+          }, 120);
+        });
+      }
+
+      // Auto-sbalení po připojení (ponecháme)
+      let autoClosed = false;
+      setInterval(()=>{
+        try{
+          if (!autoClosed && typeof isEditorConnected === 'function' && isEditorConnected()){
+            closeQuick(); autoClosed = true;
+          }
+        }catch(_){}
+      }, 400);
+
+      window.addEventListener('resize', layoutResponsive);
+      layoutResponsive();
+
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+      };
+    
+      
+    }).call(this);
+    
+    function calculate_size(win) {
+      var cols = (getWidth() / 6.2) | 0;
+      var rows = (document.getElementById("terminal_div").offsetHeight / 13.5) | 0;
+      return [cols, rows];
+    }
+    
+    function getWidth() {
+      return Math.max(
+        document.body.scrollWidth,
+        document.documentElement.scrollWidth,
+        document.body.offsetWidth,
+        document.documentElement.offsetWidth,
+        document.documentElement.clientWidth
+      );
+    }
+    
+    function getHeight() {
+      return Math.max(
+        document.body.scrollHeight,
+        document.documentElement.scrollHeight,
+        document.body.offsetHeight,
+        document.documentElement.offsetHeight,
+        document.documentElement.clientHeight
+      );
+    }
+    
+    function close_code() {
+      document.getElementById("code_dialog").style.display = "none";
+      code_window_open = false;
+    }
+    
+    function showCode() {
+      if (!code_window_open) {
+        Blockly.Python.INFINITE_LOOP_TRAP = null;
+        var str_code = Blockly.Python.workspaceToCode(demoWorkspace);
+        editor.setValue(str_code, 1);
+        document.getElementById("code_dialog").style.display = "block";
+        code_window_open = true;
+      } else {
+        close_code();
+        code_window_open = false;
+      }
+    }
+    
+    function close_save() {
+      document.getElementById("save_dialog").style.display = "none";
+    }
+    
+    function save_file_dialog() {
+      document.getElementById("save_dialog_btn").disabled = false;
+      document.getElementById("save_dialog_btn").value = "Uložit";
+      document.getElementById("save_dialog").style.display = "block";
+    }
+    
+    function file_download(filename, text) {
+      var element = document.createElement('a');
+      element.setAttribute('href', 'data:application/xml;charset=utf-8,' + encodeURIComponent(text));
+      element.setAttribute('download', filename);
+      element.style.display = 'none';
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+    }
+    
+    function code_download_pc() {
+      var xml = Blockly.Xml.workspaceToDom(demoWorkspace);
+      var xml_text = Blockly.Xml.domToText(xml);
+
+      // === ESPIDE EXTENSIONS: embed used extensions =====================
+      let used = [];
+      try { used = pickUsedExtensions(xml_text) || []; } catch(_) { used = []; }
+      const payload = { version:1, processor:(userSettings&&userSettings.processor)||null, extensions: used };
+      const blob = utf8_to_b64(JSON.stringify(payload));
+
+      // místo prostého připojení ZA </xml> teď vkládáme DOVNITŘ
+      const final_text = injectExtensionsIntoXml(xml_text, blob);
+
+      let project_name = document.getElementById("save_filename").value;
+      if (!project_name) {
+        alert("Musíte zadat platné jméno projektu!");
+      } else {
+        if (project_name.endsWith('.xml') || project_name.endsWith('.blk')) {
+          file_download(project_name, final_text);
+        } else {
+          file_download(project_name + ".blk", final_text);
+        }
+      }
+      close_save();
+    }
+    
+    
+    function code_upload_pc() {
+      document.getElementById('upload_file_input').addEventListener('change', readSingleFile, false);
+      document.getElementById('upload_file_input').click();
+    }
+    
+    function readSingleFile(e) {
+      var file = e.target.files[0];
+      if (!file) return;
+      document.getElementById("save_filename").value = file.name.replace(/\.xml$|\.blk$/i, "");
+      var reader = new FileReader();
+      reader.onload = async function(ev) {
+          try {
+            var contents = ev.target.result;
+
+            const { payload, strippedText } = peelExtensionsComment(contents);
+
+            // 3a) přepni processor před integrací rozšíření
+            if (payload?.processor && payload.processor !== (userSettings && userSettings.processor)) {
+              await switchProcessorAndReloadToolbox(payload.processor);
+            }
+
+            // 3b) integruj rozšíření
+            if (payload?.extensions && Array.isArray(payload.extensions)) {
+              mergeAndIntegrateExtensionsFromPayload(payload);
+            }
+
+            // 3c) teď čisté XML do workspace
+            var xml = Blockly.Xml.textToDom(strippedText);
+            demoWorkspace.clear();
+            Blockly.Xml.domToWorkspace(xml, demoWorkspace);
+            this.value = "";
+          } catch (err) {
+            alert(err);
+          }
+        };
+      reader.readAsText(file);
+    }
+    
+    
+    
+    // Prevence zavření stránky
+    const isElectron = (typeof navigator !== 'undefined' && /Electron/i.test(navigator.userAgent)) || !!(globalThis.process?.versions?.electron);
+
+    if (!isElectron) {
+      window.onbeforeunload = (e) => { e.preventDefault(); e.returnValue = ''; };
+    }
+    
+    
+    function updateMoreMenuLabels(){
+      const openBtn = document.getElementById('menuOpenBtn');
+      const saveBtn = document.getElementById('menuSaveBtn');
+      if (!openBtn || !saveBtn) return;
+
+      if (projectMode === 'text'){
+        openBtn.textContent = 'Otevřít soubor z PC';
+        openBtn.title = 'Načíst soubor z PC do textového editoru';
+        saveBtn.textContent = 'Uložit soubor do PC';
+        saveBtn.title = 'Stáhnout obsah aktuálního TABu do PC';
+      } else {
+        openBtn.textContent = 'Otevřít projekt z PC';
+        openBtn.title = 'Načíst Blockly projekt do Workspace';
+        saveBtn.textContent = 'Uložit projekt do PC';
+        saveBtn.title = 'Uložit aktuální Blockly projekt do PC';
+      }
+    }
+
+
+
+
+    function showDropdown() {
+      var x = document.getElementById("more_menu");
+      const willOpen = (x.style.display === "none" || x.style.display === "");
+      x.style.display = willOpen ? "block" : "none";
+      if (willOpen) updateMoreMenuLabels();
+    }
+    
+    
+    
+    
+    function getActiveTabDevicePath(){
+      if (!textProject || textProject.activeIndex < 0) return null;
+      const raw = String(textProject.files[textProject.activeIndex]?.name || '').trim();
+      if (!raw) return null;
+
+      // povol „složka/soubor.py“ i „soubor.py“
+      let p = raw.startsWith('/') ? raw : '/' + raw;
+
+      // normalizace //, ., ..  → zjednodušeně a bezpečně
+      p = p.replace(/\/+/g, '/');
+      const parts = [];
+      for (const seg of p.split('/')){
+        if (!seg || seg === '.') continue;
+        if (seg === '..'){ parts.pop(); continue; }
+        parts.push(seg);
+      }
+      return '/' + parts.join('/');
+    }
+
+    async function saveActiveTabToESP(){
+      if (!textProject || textProject.activeIndex < 0 || !textProject.files.length){
+        alert('Není otevřen žádný tab.'); return;
+      }
+      const f   = textProject.files[textProject.activeIndex];
+      const dst = getActiveTabDevicePath();
+      if (!dst){ show_modal_message('Chybný název souboru', 'Zkontroluj název TABu.'); return; }
+
+      if (typeof isEditorConnected === 'function' ? !isEditorConnected() : true){
+        // jednotná hláška jako ve File Manageru
+        if (typeof showNotConnected === 'function') showNotConnected();
+        else show_modal_message('Zařízení nepřipojeno.', 'Připoj USB nebo Bluetooth.');
+        return;
+      }
+
+      const content = f.session ? f.session.getValue() : (f.content || '');
+
+      try{
+        if (typeof term !== 'undefined' && term && term.writeln) term.writeln('Ukládám: ' + dst);
+        if (mp()) mp().mute_terminal = true;
+
+        // hlavní upload (stejný kanál jako ve File Manageru)
+        await mp().sendFile(dst, content, false);  // string je podporovaný stejně jako Uint8Array
+
+        await delay(250);
+        if (mp()) mp().mute_terminal = false;
+        await mp().sendData('\r\n');
+        await delay(50);
+
+        // označ TAB jako uložený
+        if (f.dirty){ f.dirty = false; renderTabs(); }
+        saveTextProjectToLS();
+      } catch(e){
+        if (mp()) mp().mute_terminal = false;
+        show_modal_message('Uložení se nepovedlo', String(e && e.message || e));
+      }
+    }
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    function saveActiveTabAsFile(){
+      if (!textProject || textProject.activeIndex < 0 || !textProject.files.length){
+        alert('Není otevřen žádný tab.');
+        return;
+      }
+      var f = textProject.files[textProject.activeIndex];
+      var name = f.name || 'soubor.py';
+      var content = f.session ? f.session.getValue() : (f.content || '');
+
+      var blob = new Blob([content], {type:'text/plain;charset=utf-8'});
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function(){
+        URL.revokeObjectURL(a.href);
+        document.body.removeChild(a);
+      }, 0);
+
+      // po úspěšném stažení už nepovažujeme tab za „dirty“
+      if (f.dirty){ f.dirty = false; renderTabs(); }
+      saveTextProjectToLS();
+    }
+    
+    
+    function openFileIntoActiveTab(){
+      // Zajisti, že existuje aspoň jeden tab
+      if (!textProject || textProject.files.length === 0){
+        ensureOneDefaultTab();
+      }
+      var i = textProject.activeIndex;
+      if (i < 0) i = 0;
+
+      var inp = document.createElement('input');
+      inp.type = 'file';
+      inp.accept = '.py,.txt';
+      inp.onchange = function(e){
+        var file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        var reader = new FileReader();
+        reader.onload = function(){
+          var txt = String(reader.result || '');
+          var parts = splitNameExt(file.name);
+          var newName = uniqueFileName(parts.base, parts.ext, i); // respektuj unikátnost mezi ostatními tably
+
+          var f = textProject.files[i];
+
+          // přejmenuj tab (unikátně) a vlož obsah
+          f.name = newName;
+
+          if (f.session){
+            f.session.setValue(txt);
+          } else {
+            // fallback, pokud bys ještě neměl sessions
+            f.content = txt;
+            if (aceText) aceText.setValue(txt, -1);
+          }
+
+          f.dirty = false;          // čerstvě načteno → není špinavé
+          activateTab(i);           // zobraz
+          renderTabs();
+          saveTextProjectToLS();
+        };
+        reader.readAsText(file, 'utf-8');
+      };
+      inp.click();
+    }
+
+    // Pomocníci pro práci se jménem
+    function splitNameExt(filename){
+      var m = /^(.+?)(?:\.([^.]+))?$/.exec(filename || '');
+      return {
+        base: (m && m[1]) ? m[1] : 'soubor',
+        ext:  (m && m[2]) ? m[2] : 'py'
+      };
+    }
+
+    // ignoreIndex = index tabu, který právě přejmenováváš (aby se nepočítal jako kolize sám se sebou)
+    function uniqueFileName(base, ext, ignoreIndex){
+      base = (base || 'soubor').replace(/[\\:*?"<>|]/g, '_'); // "/" z whitelistu NEodstraňuj
+      ext  = (ext  || 'py').replace(/[\\:*?"<>|]/g, '');
+      const taken = {};
+      for (let idx=0; idx<textProject.files.length; idx++){
+        if (idx === ignoreIndex) continue;
+        taken[textProject.files[idx].name] = true;
+      }
+      let n = 1, name = base + '.' + ext;
+      while (taken[name]){ name = base + n + '.' + ext; n++; }
+      return name;
+    }
+    
+    async function handleTextDrop(e){
+      try{
+        const files = Array.from((e.dataTransfer && e.dataTransfer.files) || []);
+        if (!files.length) return;
+        for (const file of files){
+          const content = await file.text();     // textové soubory; binární neřešíme
+          addNewTab(file.name, content);         // použiješ svou existující funkci
+        }
+        if (aceText) aceText.focus();
+      }catch(err){
+        show_modal_message && show_modal_message('Nelze načíst soubor', String(err && err.message || err));
+      }
+    }
+
+    function setupDnDForEditors(){
+      // 1) Lokální DnD na ACE kontejner
+      const el = document.getElementById('aceText');
+      if (el){
+        ['dragenter','dragover'].forEach(ev=>{
+          el.addEventListener(ev, (e)=>{
+            if (window.__FM_ACTIVE) return;           // FM otevřen → ignoruj
+            if (projectMode === 'text'){
+              e.preventDefault();
+              if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+            }
+          }, false);
+        });
+        el.addEventListener('drop', (e)=>{
+          if (window.__FM_ACTIVE) {                   // FM otevřen → spolknout
+            e.preventDefault(); e.stopPropagation();
+            return;
+          }
+          if (projectMode !== 'text') return;
+          e.preventDefault();
+          e.stopPropagation();
+          if (typeof hideDropZone === 'function') try { hideDropZone(); } catch(_){}
+          handleTextDrop(e);
+        }, false);
+      }
+
+      // 2) Globální capture: pokud je aktivní text, zablokuj Blockly DnD,
+      // a když je otevřen FM, zamez průchodu úplně (mimo overlay řeší openFM()).
+      const capDragOver = (e)=>{
+        if (window.__FM_ACTIVE) return;               // mimo overlay to stejně brzdí openFM()
+        if (projectMode === 'text' &&
+            e.dataTransfer && e.dataTransfer.types && e.dataTransfer.types.includes('Files')){
+          e.preventDefault();
+          e.stopPropagation();                        // zamezí průchodu do Blockly
+          e.dataTransfer.dropEffect = 'copy';
+        }
+      };
+      const capDrop = (e)=>{
+        if (window.__FM_ACTIVE) return;               // mimo overlay to stejně brzdí openFM()
+        if (projectMode === 'text'){
+          if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length){
+            e.preventDefault();
+            e.stopPropagation();
+            if (typeof hideDropZone === 'function') try { hideDropZone(); } catch(_){}
+            handleTextDrop(e);
+          } else {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        }
+      };
+      document.addEventListener('dragover', capDragOver, true); // capture
+      document.addEventListener('drop',     capDrop,     true); // capture
+    }
+
+
+    
+    
+    function saveCurrentProjectToPC(){
+      if (projectMode === 'text'){
+        // preferuj existující implementaci, pokud ji máš
+        if (typeof saveActiveTabAsFile === 'function'){
+          return saveActiveTabAsFile();
+        }
+        // fallback: stáhni obsah aktivního TABu
+        if (!textProject || textProject.activeIndex < 0 || !textProject.files.length){
+          return show_modal_message && show_modal_message('Nic k uložení', 'Není otevřen žádný TAB.');
+        }
+        const f = textProject.files[textProject.activeIndex];
+        const name = (f && f.name) ? f.name : 'soubor.py';
+        const content = f.session ? f.session.getValue() : (f.content || '');
+
+        const blob = new Blob([content], {type: 'text/plain;charset=utf-8'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        URL.revokeObjectURL(a.href);
+        document.body.removeChild(a);
+      } else {
+        // Blockly: beze změny — stáhnout projekt do PC
+        // (použij to, co už dnes dělá export do PC)
+        if (typeof save_file_dialog === 'function') return save_file_dialog(); // volá code_download_pc()
+        if (typeof code_download_pc === 'function')  return code_download_pc();
+      }
+    }
+    
+    
+    
+
+    
+    
+    
+    function openCurrentProject(){
+      if (projectMode==="blocks") code_upload_pc();
+      else openFileIntoActiveTab();
+    }
+    
+    function saveCurrentProject(){
+      if (projectMode === "blocks"){
+        // bloky: bez změny → dialog do PC
+        save_file_dialog(); // volá code_download_pc()
+      } else {
+        // text: ulož aktivní TAB do ESP podle názvu TABu (včetně složky)
+        saveActiveTabToESP();
+      }
+    }
+    
+    
+    
+    
+    function topbarUndo(){
+      if (projectMode === "text"){
+        try {
+          if (aceText && typeof aceText.undo === 'function') aceText.undo();
+          else {
+            const i = textProject.activeIndex;
+            const ses = i>=0 && textProject.files[i] && textProject.files[i].session;
+            if (ses && ses.getUndoManager) ses.getUndoManager().undo(false);
+          }
+        } catch(_) {}
+      } else {
+        if (window.Blockly && Blockly.mainWorkspace) Blockly.mainWorkspace.undo(false);
+      }
+    }
+
+    function topbarRedo(){
+      if (projectMode === "text"){
+        try {
+          if (aceText && typeof aceText.redo === 'function') aceText.redo();
+          else {
+            const i = textProject.activeIndex;
+            const ses = i>=0 && textProject.files[i] && textProject.files[i].session;
+            if (ses && ses.getUndoManager) ses.getUndoManager().redo(false);
+          }
+        } catch(_) {}
+      } else {
+        if (window.Blockly && Blockly.mainWorkspace) Blockly.mainWorkspace.undo(true);
+      }
+    }
+    
+    
+    
+    
+    
+    
+    
+    // Otevře textový soubor v ACE jako nový TAB se jménem = devicePath (včetně složky)
+    window.__espideFM_openTextTab = function(devicePath, content){
+      try{
+        const rbBlocks = document.getElementById('modeBlocks');
+        const rbText   = document.getElementById('modeText');
+        rbBlocks.checked = false;
+        rbText.checked = true;
+        switchUITo("text");
+
+        // vytvoř TAB přes "exact" helper, aby zůstal zachován název se "/"
+        addNewTabExact(devicePath.replace(/^\/+/, ''), content);
+
+        // aktivuj a zaměř kurzor
+        if (typeof aceText !== 'undefined' && aceText) aceText.focus();
+      }catch(e){
+        if (typeof show_modal_message === 'function') show_modal_message('Nelze otevřít soubor', String(e && e.message || e));
+      }
+    };
+
+
+    // Otevře XML/BLK do Blockly (včetně zpracování ESPIDE_EXTENSIONS a přepnutí procesoru)
+    window.__espideFM_openBlocksFromString = async function(xmlOrBlkText, filename){
+      try{
+        const rbBlocks = document.getElementById('modeBlocks');
+        const rbText   = document.getElementById('modeText');
+        rbBlocks.checked = true;
+        rbText.checked = false;
+        switchUITo("blocks");
+      
+        // minimální fallback
+        var blocks = document.getElementById('blocklyDiv');
+        var textPane = document.getElementById('textEditorPane');
+        if (blocks) blocks.style.display = 'block';
+        if (textPane) textPane.style.display = 'none';
+        if (typeof projectMode !== 'undefined') projectMode = 'blocks';
+
+        
+
+        // z XML/BLK vyjmi "extensions" blob a případně přepni procesor
+        var strippedText = xmlOrBlkText;
+        if (typeof peelExtensionsComment === 'function'){
+          const { payload, strippedText: st } = peelExtensionsComment(xmlOrBlkText);
+          strippedText = st || xmlOrBlkText;
+
+          if (payload && payload.processor && typeof switchProcessorAndReloadToolbox === 'function'){
+            if (!window.userSettings || window.userSettings.processor !== payload.processor){
+              await switchProcessorAndReloadToolbox(payload.processor);
+            }
+          }
+          if (payload && payload.extensions && Array.isArray(payload.extensions) && typeof mergeAndIntegrateExtensionsFromPayload === 'function'){
+            mergeAndIntegrateExtensionsFromPayload(payload);
+          }
+        }
+
+        // načti do workspace
+        const xml = Blockly.Xml.textToDom(strippedText);
+        if (typeof demoWorkspace !== 'undefined' && demoWorkspace){
+          demoWorkspace.clear();
+          Blockly.Xml.domToWorkspace(xml, demoWorkspace);
+        }
+      }catch(err){
+        if (typeof show_modal_message === 'function') show_modal_message('Chyba při načítání projektu', String(err && err.message || err));
+      }
+    };
+
+
+    // Vytvoří nový TAB se jménem přesně podle vstupu (včetně "/"), řeší kolizi názvů
+    function addNewTabExact(exactName, initialText){
+      if (typeof textProject === 'undefined') window.textProject = { files: [], activeIndex: -1 };
+
+      // pokud už existuje tab se stejným jménem → aktivuj a přepiš obsah
+      const idx = (textProject.files || []).findIndex(f => f && f.name === exactName);
+      if (idx >= 0){
+        const f = textProject.files[idx];
+        if (f && f.session) f.session.setValue(String(initialText || ''));
+        textProject.activeIndex = idx;
+        if (typeof renderTabs === 'function') renderTabs();
+        if (typeof aceText !== 'undefined' && aceText && f && f.session) aceText.setSession(f.session);
+        return;
+      }
+
+      // nový session
+      const ses = typeof AceEditSession !== 'undefined'
+          ? new AceEditSession(String(initialText || ''))
+          : (ace && ace.createEditSession ? ace.createEditSession(String(initialText || '')) : null);
+
+      if (!ses) throw new Error('ACE session není dostupná.');
+
+      // zkus nastavit mód podle přípony
+      (function(){
+        const m = (exactName.split('.').pop() || '').toLowerCase();
+        let mode = null;
+        if (m === 'py') mode = 'ace/mode/python';
+        else if (m === 'js') mode = 'ace/mode/javascript';
+        else if (m === 'json') mode = 'ace/mode/json';
+        else if (m === 'html' || m === 'htm') mode = 'ace/mode/html';
+        else if (m === 'css') mode = 'ace/mode/css';
+        if (mode && ses.setMode) ses.setMode(mode);
+      })();
+
+      // Undo manager aby fungovalo Ctrl+Z/Undo i u takto otevřených TABů
+      try{
+        const um = (typeof AceUndoManager !== 'undefined') ? new AceUndoManager() 
+                  : (ace && ace.require ? ace.require('ace/undomanager').UndoManager : null);
+        if (um && ses.setUndoManager) ses.setUndoManager(um);
+      }catch(_){}
+
+      // zapiš do projektu
+      textProject.files = Array.isArray(textProject.files) ? textProject.files : [];
+      textProject.files.push({ name: exactName, session: ses, dirty: false });
+      textProject.activeIndex = textProject.files.length - 1;
+
+      // navázat do ACE
+      if (typeof aceText !== 'undefined' && aceText && ses) aceText.setSession(ses);
+      if (typeof renderTabs === 'function') renderTabs();
+      if (typeof saveTextProjectToLS === 'function') saveTextProjectToLS();
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+  </script>  
+  <title>ESP IDE</title>
+  <style type="text/css" media="screen">
+    html, body { height: 100%; }
+    body {
+      overflow: hidden;
+      margin: 0;
+      padding: 0px;
+      background-color: #F6F6F6;
+      box-sizing: border-box;
+    }
+    .ace_editor {
+      margin: 0;
+      position: relative;
+      top: 0; bottom: 0; left: 0; right: 0;
+      height: 100%;
+      width: 100%;
+    }
+    #term {
+      margin: 0;
+      position: relative;
+      top: 0; bottom: 0; left: 0; right: 0;
+      background: #000;
+      height: 100%;
+      width: 100%;
+    }
+    .terminal { border: #000 solid 2px; background: #000; }
+    .x, .x_code, #save_dialog_btn, #load_dialog_btn { cursor: pointer; }
+    .split {
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    .content { border: 0px solid #C0C0C0; }
+    
+    .gutter { background-color: #808080; }
+    .gutter.gutter-vertical { cursor: row-resize; }
+    #editor_div { padding-top: 44px; }
+    
+    #terminal_div { 
+      position: absolute;
+      width: 100%;
+    }
+    
+    #more_button  {
+      position: absolute;
+      top: 0px;
+      right: 0px;
+      height: 42px;
+      width: 40px;
+      background: #f6f6f6;
+      display: block;
+      text-align: center;
+      cursor: pointer;
+      font-size: 30px;
+      caret-color: transparent;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    #more_menu  {
+      position: absolute;
+      top: 48px;
+      right: 32px;
+      height: 445px;
+      width: 200px;
+      background: #f6f6f6;
+      cursor: pointer;
+      text-align: left;
+      font-size: 15px;
+      font-family: Geneva, sans-serif;
+      border: 1px solid #a8a8a8;
+      display: none;
+      border-radius: 4px;
+      box-shadow: rgba(0, 0, 0, 0.4) 0px 3px 8px;
+    }
+    #code_dialog  {
+      position: absolute;
+      top: 56px;
+      right: 20px;
+      height: 70%;
+      left: 50px;
+      background: #e6e6e6;
+      border-radius: 2px;
+      box-shadow: rgba(0, 0, 0, 0.4) 0px 3px 8px;
+      border: 1px solid rgba(0, 0, 0, 0.2);
+      display: none;
+    }
+    #save_dialog  {
+      position: absolute;
+      top: 70px;
+      left: 210px;
+      height: 140px;
+      width: 250px;
+      background: #e6e6e6;
+      border-radius: 6px;
+      border: 1px solid #BBBBBB;
+      display: none;
+      box-shadow: rgba(0, 0, 0, 0.4) 0px 3px 8px;
+    }
+    input, select {
+      display: block;
+      border: 1px solid rgba(0, 0, 0, 0.16);
+      border-radius: 5px;
+      font-size: 16px;
+      background: #fAfAfA;
+      width: 90%; 
+      padding: 10px;
+      margin: 10px;
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box;
+    }
+    .x {
+      display: block;
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 32px;
+      height: 24px;
+      text-align: center;
+      font-family: Arial, sans-serif;
+    }
+    .x_code {
+      display: block;
+      position: absolute;
+      right: 14px;
+      top: 0;
+      width: 28px;
+      height: 24px;
+      text-align: center;
+      font-family: Arial, sans-serif;
+      z-index: 3;
+      font-size: x-large;
+    }
+    #blocklyDiv { height: 100%; width: 100%; position: absolute;}
+    .blocklyToolboxContents { padding: .1em; }
+    .blocklyTreeRow { padding: 10px; margin-bottom: .2em; border-radius: 5px; }
+    .blocklyFlyoutBackground { fill: #f6f6f6; }
+    .blocklyToolboxDiv { background-color: #f6f6f6; }
+    .blocklyTreeIcon { width: 1px; }
+    
+    
+    #myProgress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 0%;
+      height: 4px;
+      background-color: #29d;
+      z-index: 9999;
+      transition: width 0.5s ease, opacity 0.2s ease;
+    }
+    
+    
+    /* Bezpečné chování SweetAlert2 v aplikaci s vlastním layoutem */
+    html.swal2-shown, body.swal2-shown { overflow: initial !important; }
+    body.swal2-height-auto { height: auto !important; }
+
+    /* Když rendrujeme do #swal-root, ať je to “nad vším”, ale bez globálního backdropu */
+    #swal-root { position: fixed; inset: 0; z-index: 2147483647; pointer-events: none; }
+    #swal-root .swal2-container { pointer-events: all; }
+    
+  </style>
+  
+  
+  <style>
+    #extensions_dialog {
+      position: absolute;
+      z-index: 10001;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 340px;
+      height: 458px
+      background:#ffffff; 
+      border: 2px solid #666;
+      border-radius: 6px;
+      display: none;
+    }
+    #ext_header {
+      padding: 6px 10px;
+      font-size: 18px;
+      background: #666;
+      color: #fff;
+    }
+    #ext_list {
+      height: 250px;
+      overflow: auto;
+      padding: 8px;
+    }
+    #ext_drop {
+      height: 90px;
+      margin: 8px;
+      border: 2px dashed #3f51b580;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #3f51b5;
+      font-size: 20px;
+    }
+    #extensions_dialog .ext_row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 4px 0;
+    }
+    .ext_btn {
+      margin-left: 6px;
+      background: #ff5252;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      height: 22px;
+    }
+    #extensions_dialog .ext_row label {
+      flex: 1;
+      margin-left: 6px;
+      color: #000;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    #extensions_dialog input[type="checkbox"]{
+      width:20px;          /* ↑ šířka 24 px */
+      height:20px;         /* ↑ výška 24 px – ať je čtverec */
+      cursor:pointer;
+      /* volitelné – barva fajfky v moderních prohlížečích */
+      accent-color:#3f51b5;
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    .segmented {
+      display: inline-flex; gap:0; background:#e7e7e7; padding:2px; border-radius:6px;
+      box-shadow: 0 1px 2px rgba(0,0,0,.15) inset, 0 1px 2px rgba(0,0,0,.15);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    }
+    .segmented input { display:none; }
+    .segmented label {
+      padding:3px 4px; border-radius:5px; cursor:pointer; user-select:none;
+      border:1px solid transparent; font-size:14px; line-height:18px;
+    }
+    .segmented input:checked + label {
+      background:#fff; border-color:#d0d7de; box-shadow:0 1px 2px rgba(0,0,0,.15);
+    }
+    
+    #modeSwitch { height:31px; }
+    
+    
+    #textShell { position: relative; height:100%; width:100%; }
+    #textEditorHost { position:absolute; top:55px; left:0; right:0; bottom:0; }
+    #aceText { position:absolute; top:0px; left:0; right:0; bottom:0; }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    :root { --qp-h: 56px; }  /* výška panelu, dopočítá JS podle obsahu */
+
+    #quick_panel_button{
+      position:absolute; top:0; right:44px; width:40px; height:42px;
+      background:#f6f6f6; display:none;
+      text-align:center; line-height:42px; font-size:36px; cursor:pointer;
+      user-select:none; z-index:1000;
+    }
+
+    /* Panel vyjíždí plynule změnou height; obsah je přilepený dole. */
+    #quick_panel{
+      position:absolute; left:0; right:0; top:44px;
+      height:0; overflow:hidden; background:#f6f6f6; border-bottom:1px solid #e5e7eb;
+      transition: height .25s ease;
+      box-shadow:0 2px 4px rgba(0,0,0,.06);
+      z-index:999;
+    }
+    #quick_panel.open{ height: var(--qp-h); }
+
+    #quick_panel_inner{
+      position:relative; height:100%;
+    }
+
+    /* Prvky uvnitř panelu mají absolutní pozici; Y je přilepeno ke dnu. */
+    .in-panel{
+      position:absolute !important;
+      bottom:8px;  /* přilepení na spodní okraj panelu */
+    }
+
+    /* Breakpoint: úzké displeje – zobraz toggle, skryj topbarové instance (mimo panel) */
+    @media (max-width:1150px){
+      #quick_panel_button{ display:block; }
+      #SerialConnectButton:not(.in-panel),
+      #BLE_SerialConnectButton:not(.in-panel),
+      #processorDropdown:not(.in-panel),
+      #modeSwitch:not(.in-panel){ display:none !important; }
+    }
+
+    /* Široké displeje: panel neukazuj */
+    @media (min-width:1151px){
+      #quick_panel_button, #quick_panel{ display:none !important; }
+    }
+
+    /* Taby v textovém režimu: jeden řádek, vodorovný scroll, neoznačitelný text */
+    #tabbar{ white-space:nowrap; overflow:hidden; height 50px;}
+    #tabs{
+      display:flex; gap:6px;
+      flex-wrap:nowrap !important;
+      overflow-x:auto; overflow-y:hidden; scrollbar-width:thin;
+      height:54px;
+    }
+    #tabs, #tabs *{ user-select:none; -webkit-user-select:none; }
+    
+    
+    
+    
+    #gamepadToggle{
+      background: transparent url('media/gamepad.png') center/contain no-repeat;
+      border:0; padding:0; margin:0; outline:0;
+      -webkit-appearance:none; appearance:none;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-user-select:none; user-select:none;
+      touch-action: manipulation;
+      cursor: pointer;
+    }
+    #gamepadToggle:focus, #gamepadToggle:focus-visible, #gamepadToggle:active{
+      outline:0; box-shadow:none;
+    }
+    #gamepadToggle::-moz-focus-inner{ border:0; }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    #btnOpenFM{position:absolute; top:8px; right:12px; height:36px; padding:0 12px; z-index:1200;}
+    #fm_overlay{position:fixed; inset:0; display:none; z-index:2147483646; background:#fff; overflow:auto;}
+  </style>
+  
+  
+  
+  
+</head>
+<body>
+  <div id="myProgress"></div>
+  <div id="drop_zone" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; display: none; background-color: rgba(0, 0, 0, 0.5); text-align: center; color: white; padding-top: 20%; font-size: 25px;">
+    Puštěním, se zahájí načítání souboru.
+  </div>
+  
+  <img src="media/topbar_blk.png" width="520" height="42" usemap="#icon_map" style="position: absolute; user-drag: none; user-select: none; top: 2px; left: 0px">
+  <map name="icon_map">
+    <area alt="Spustit kód" title="Spustit kód" shape="rect" coords="8,1,85,41" onclick="phone_vibrate();runCode();" style="cursor: pointer;">
+    <area alt="Zastavit program" title="Zastavit program" shape="rect" coords="94,1,136,41" onclick="phone_vibrate();stopCode();" style="cursor: pointer;">
+    <area alt="Otevřít soubor z PC" title="Otevřít soubor z počítače" shape="rect" coords="145,1,188,41" onclick="phone_vibrate();openCurrentProject();" style="cursor: pointer;">
+    <area data-role="save" alt="Uložit soubor do PC" title="Uložit soubor do počítače" shape="rect" coords="192,1,234,41" onclick="phone_vibrate();saveCurrentProject();" style="cursor: pointer;">
+    <area alt="Zpět"  title="Zpět"  shape="rect" coords="240,1,282,41" onclick="phone_vibrate();topbarUndo();"  style="cursor: pointer;">
+    <area alt="Znovu" title="Znovu" shape="rect" coords="288,1,330,41" onclick="phone_vibrate();topbarRedo();" style="cursor: pointer;">
+    <area alt="Zobrazit kód" title="Zobrazit kód" shape="rect" coords="336,1,376,41" onclick="phone_vibrate();showCode();" style="cursor: pointer;">
+    <area alt="Informace o zařízení" title="Informace o zařízení" shape="rect" coords="378,1,423,41" onclick="phone_vibrate();get_Info();" style="cursor: pointer;">
+    <area alt="Restart zařízení" title="Restart zařízení" shape="rect" coords="433,1,472,41" onclick="phone_vibrate();ResetCPU();" style="cursor: pointer;">
+    <area alt="Správce souborů" title="Správce souborů" shape="rect" coords="482,1,518,41" onclick="phone_vibrate();openFM();" style="cursor: pointer;">
+  </map>
+  
+  <button id="SerialConnectButton" type="button" title="Připojit nebo odpojit zařízení pomocí USB" style="position: absolute; border: none; top: 2px; left: 565px; height: 42px; width: 103px; z-index: 999; cursor: pointer; background-color: #f6f6f6; background-repeat: no-repeat;  background-size: 103px 42px;">
+  </button>
+  
+  
+  <button id="BLE_SerialConnectButton" type="button" title="Připojit nebo odpojit zařízení pomocí Bluetooth" style="position: absolute; border: none; top: 2px; left: 670px; height: 42px; width: 50px; z-index: 999; cursor: pointer; background-color: #f6f6f6; background-repeat: no-repeat;  background-size: 50px 42px;">
+  </button>
+  
+  
+  
+  <!-- Výběr procesoru v horní liště -->
+  <select id="processorDropdown" title="Aktuální procesor" style="position:absolute; top:4px; left:748px; width:160px; height:36px; margin: 0px; padding: 5px; z-index:999; font-size:16px;">
+      <option value="ESP32">ESP32</option>
+      <option value="ESP32C3">ESP32-C3</option>
+      <option value="ESP32S3">ESP32-S3</option>
+      <option value="ESP8266">ESP8266</option>
+      <option value="RP2040">RP2040</option>
+      <option value="RP2040_Picoed">RP2040 Pico:ed</option>
+  </select>
+  
+  
+  <div id="modeSwitch" class="segmented" style="position:absolute; top:4px; left:930px; z-index:999;">
+      <input type="radio" name="mode" id="modeBlocks" checked>
+      <label for="modeBlocks" title="Programování v blocích"><img src="media/blockly_switch2.png" alt="Bloky" width="67" height="22"></label>
+      <input type="radio" name="mode" id="modeText">
+      <label for="modeText" title="Programování textem"><img src="media/code_switch2.png" alt="Bloky" width="67" height="22"></label>
+  </div>
+  
+  
+  
+  
+  
+  
+  
+  <div id="editor_div" class="split content">
+      <div id="blocklyDiv"></div>
+
+      <!-- Text editor area (hidden by default) -->
+      <div id="textShell" style="display:none; height:100%; width:100%; position:relative;">
+        <div id="tabbar" style="height:54px; display:flex; align-items:center; gap:6px; padding:2px 8px; background:#f6f6f6; border-bottom:1px solid #e5e7eb;">
+          <button id="btnNewTab" title="Nový soubor" style="height: 35px; border: 1px solid rgb(165, 165, 165); border-radius: 8px; background: rgb(255, 255, 255); cursor: pointer; padding-right: 15px;margin-bottom: 12px;">＋ Nový</button>
+          <div id="tabs" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
+        </div>
+        <div id="textEditorHost" style="position:absolute; top:58px; left:0; right:0; bottom:0;">
+          <div id="aceText" class="ace_editor"></div>
+        </div>
+      </div>
+  </div>
+    
+    
+  <div id="terminal_div" class="split content"><div id="term"></div></div>
+  
+  <div id="code_dialog" style="z-index: 150;">
+    <div class="x_code" onclick="close_code();">x</div>
+    <pre id="editor"></pre>
+  </div>
+  
+  <input id="upload_file_input" type="file" accept=".xml, .blk" style="position: absolute; top: 99%; left: 99%; width: 0px; height: 0px; padding: 0px" />
+  
+  <div id="save_dialog" style="z-index: 200;">
+    <div class="x" onclick="close_save();">x</div>
+    <form class="form_style" action="">
+      <p align="center" style="margin: 10px;">Uložit soubor do PC</p>
+      <input type="text" id="save_filename" name="save_filename" value="nazev_projektu" placeholder="nazev_projektu">
+      <input type="submit" id="save_dialog_btn" value="Uložit" onclick="code_download_pc(); return false;">
+    </form> 
+  </div>
+  
+  
+  
+  
+    <div id="extensions_dialog" style="background:#ffffff;">
+        <div id="ext_header">Správce doplňků
+            <span class="x" style="float:right;cursor:pointer;background-color: #f85858;margin-right: 2px;margin-top: 4px;border-radius: 4px;" onclick="closeExtensionsDialog()">×</span>
+        </div>
+        <div id="ext_list"></div>
+        <div id="ext_drop">Sem přetáhni *.newblk soubory</div>
+        <input type="button" value="Uložit změny" style="width:94%;margin:8px 3%;height:38px" onclick="applyExtensionSelection()">
+    </div>
+  
+  
+  
+    <div id="quick_panel_button" title="Rychlé připojení a výběr procesoru">▾</div>
+    <div id="quick_panel">
+      <div id="quick_panel_inner"></div>
+    </div>
+    
+    
+    
+    
+    
+    
+    <!-- Virtuální gamepad UI -->
+    <div id="joyBackdrop" draggable="false" tabindex="-1" style="
+      position:fixed; left:0; right:0; bottom:0;
+      height:calc(5vh + 315px); background:rgba(65,65,65,0.8);
+      z-index:100001; display:none; pointer-events:none;"></div>
+
+    <div id="joy1Div" style="
+      position:fixed; bottom:5%; right:3%;
+      width:275px; height:275px; z-index:100002; display:none;"></div>
+
+    <div id="joy2Div" style="
+      position:fixed; bottom:5%; left:3%;
+      width:275px; height:275px; z-index:100002; display:none;"></div>
+
+    <!-- nahraď původní <img id="gamepadToggle" ...> tímto: -->
+    <button id="gamepadToggle" type="button" aria-label="Gamepad" style="
+      position:fixed; bottom:8px; left:50%; transform:translateX(-50%);
+      width:100px; height:50px; z-index:100003; display:none;"></button>
+    
+      
+  <div id="more_button" onclick="showDropdown();">&#x2630;</div>
+  <div id="more_menu">
+    <div>
+      <input title="Po zapnutí procesoru se soubor automaticky spustí" type="checkbox" id="autostart" name="autostart" onclick="setTimeout(function(){showDropdown()}, 150);" style="margin-right: 5px; width: 28px; height: 28px; vertical-align: -8px; display: inline;">
+      <label title="Po zapnutí procesoru se soubor automaticky spustí" for="autostart">Automaticky spustit</label>
+    </div>
+    <hr>
+    
+    <!-- Otevřít -->
+    <button type="button"
+            id="menuOpenBtn"
+            title="Soubor z PC načíst do editoru"
+            onclick="openCurrentProject();showDropdown();"
+            style="margin: 2px; width: 98%; height: 42px; vertical-align: middle; display: inline;">
+      Otevřít projekt z PC
+    </button>
+
+    <!-- Uložit -->
+    <button type="button"
+            id="menuSaveBtn"
+            title="Stáhnout právě otevřený soubor/projekt do PC"
+            onclick="saveCurrentProjectToPC();showDropdown();"
+            style="margin: 2px; width: 98%; height: 42px; vertical-align: middle; display: inline;">
+      Uložit do PC
+    </button>
+
+    
+    
+    <hr>
+    <button id="install_fw-btn" type="button" title="Nahrát Firmware do zařízení" onclick="openInstall();showDropdown();" style="margin: 2px; width: 98%; height: 42px; vertical-align: middle; display: inline;">Nahrát Firmware do zařízení</button>
+    <script>
+      function openInstall(){
+        const w = window.open('/instalace_new', '_blank', 'noopener');
+        if (w) w.opener = null;            // bezpečnost
+        else location.href = '/instalace_new'; // fallback když popup blocker
+      }
+    </script>
+    
+    
+    
+    
+    <hr>
+    <button type="button" title="Nastavit zobrazení bloků" onclick="custom_blocks_select();showDropdown();" style="margin: 2px; width: 98%; height: 42px; vertical-align: middle; display: inline;">Nastavit zobrazení bloků</button>
+  
+    <hr>
+    <button type="button" title="Správce doplňků" onclick="openExtensionsDialog();showDropdown();" style="margin: 2px; width: 98%; height: 42px; vertical-align: middle; display: inline;">Správce doplňků</button>
+    
+    <hr>
+    <button id="joy-btn" type="button" title="Aplikace Bluetooth joystick" onclick="openJoy_App();showDropdown();" style="margin: 2px; width: 98%; height: 42px; vertical-align: middle; display: inline;">Aplikace Bluetooth joystick</button>
+    <script>
+      function openJoy_App(){
+        const w = window.open('/joy', '_blank', 'noopener');
+        if (w) w.opener = null;            // bezpečnost
+        else location.href = '/joy'; // fallback když popup blocker
+      }
+    </script>
+    
+  
+    <hr>
+    <div style="margin: 2px; width: 98%; text-align: center; font-size: 12px; opacity: .8;">
+      Verze: <a href="javascript:void(0)" onclick="showChangelog()" id="menuVersionLink">v<span id="menuVersionText"></span></a>
+    </div>
+  </div>
+  
+
+  
+  <!-- === File-Manager overlay (lazy load) ================================= -->
+  <div id="fm_overlay" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.35);backdrop-filter:saturate(0.8) blur(2px);">
+    <div id="fm_mount" style="position:absolute;inset:24px;box-shadow:0 10px 30px rgba(0,0,0,.35);border-radius:18px;overflow:hidden;background:#fff;"></div>
+  </div>
+  
+  
+  
+  
+  
+  <xml id="toolbox" style="display: none">
+    <category name="Načítání..." colour="#f6f6f6"></category>
+  </xml>
+  
+  <script>
+    // Script pro progressbar
+    !function(){
+      var t = document.getElementById("myProgress"), e = 25;
+      var n = setInterval(function(){
+        if(e < 90){
+          e += Math.random()*(200/e);
+          if(e > 90) e = 90;
+          t.style.width = e + "%";
+        }
+      }, 500);
+      window.addEventListener("load", function(){
+        clearInterval(n);
+        t.style.width = "100%";
+        setTimeout(function(){ t.style.opacity = 0; }, 500);
+      });
+    }();
+  </script>
+  
+  
+  
+  
+  <div id="swal-root"></div>
+  
+  
+  
+  
+  <script>
+    // Script pro virtuální joystick
+    (() => {
+      let joy_X=0, joy_Y=0, joy2_X=0, joy2_Y=0;
+      const elIcon = document.getElementById('gamepadToggle');
+      const elBg   = document.getElementById('joyBackdrop');
+      const elJ1   = document.getElementById('joy1Div');
+      const elJ2   = document.getElementById('joy2Div');
+
+      let gp = { open:false, init:false, txTimer:null };
+
+      function haveBleJoy() {
+        return typeof isBleConnected === 'function'
+            && isBleConnected()
+            && typeof mpBLE !== 'undefined'
+            && mpBLE && mpBLE.joy;
+      }
+
+      function updateIcon() {
+        const show = haveBleJoy();
+        elIcon.style.display = show ? 'block' : 'none';
+        if (!show) hideGamepad();
+      }
+
+      function lazyInit() {
+        if (gp.init) return;
+        gp.init = true;
+        // KLÍČOVÉ: pevné rozměry, aby nevznikla šířka/ výška 0
+        new JoyStick('joy1Div', { width:275, height:275 }, s => { joy_X  = s.x|0; joy_Y  = s.y|0; });
+        new JoyStick('joy2Div', { width:275, height:275 }, s => { joy2_X = s.x|0; joy2_Y = s.y|0; });
+      }
+
+      function startTx() {
+        stopTx();
+        gp.txTimer = setInterval(() => {
+          if (!gp.open || !haveBleJoy()) return;
+          mpBLE.sendJoy(joy2_X, joy2_Y, joy_X, joy_Y).catch(() => {});
+        }, 50);
+      }
+
+      function stopTx() {
+        if (gp.txTimer) { clearInterval(gp.txTimer); gp.txTimer = null; }
+      }
+
+      function showGamepad() {
+        if (!haveBleJoy()) return;
+        // Nejprve ukázat kontejnery, aby měly rozměry
+        elBg.style.display = 'block';
+        elJ1.style.display = 'block';
+        elJ2.style.display = 'block';
+        // potlačit bliknutí
+        elBg.style.visibility = 'hidden';
+        elJ1.style.visibility = 'hidden';
+        elJ2.style.visibility = 'hidden';
+
+        // Po vykreslení stránky joysticky vytvořit
+        requestAnimationFrame(() => {
+          lazyInit();
+          elBg.style.visibility = 'visible';
+          elJ1.style.visibility = 'visible';
+          elJ2.style.visibility = 'visible';
+          gp.open = true;
+          startTx();
+        });
+      }
+
+      function hideGamepad() {
+        gp.open = false;
+        elBg.style.display = 'none';
+        elJ1.style.display = 'none';
+        elJ2.style.display = 'none';
+        stopTx();
+      }
+
+      function toggleGamepad() { gp.open ? hideGamepad() : showGamepad(); }
+
+      // potlač “tap” highlight a focus
+      elIcon.addEventListener('pointerdown', e => e.preventDefault());
+      elIcon.addEventListener('touchstart', e => { e.preventDefault(); elIcon.blur(); toggleGamepad();}, {passive:false});
+      elIcon.addEventListener('click', e => { e.preventDefault(); elIcon.blur(); toggleGamepad(); });
+      
+      setInterval(updateIcon, 250);
+      updateIcon();
+
+      window.__espideGamepad = { updateIcon, showGamepad, hideGamepad };
+    })();
+  </script>
+  
+  
+  
+  
+  
+  
+  <script>
+    function connectedFallback(){
+      if (typeof mp === 'function'){
+        try{
+          const d = mp();
+          return !!d && (d.isConnected || d.connected || d.transportReady);
+        }catch(e){ return false; }
+      }
+      return false;
+    }
+    function isConnectedNow(){
+      if (typeof isEditorConnected === 'function') return !!isEditorConnected();
+      return connectedFallback();
+    }
+    function showNotConnected(){
+      if (typeof show_modal_message === 'function'){
+        show_modal_message('Zařízení nepřipojeno.','Připojte zařízení pomocí USB nebo Bluetooth.');
+      } else {
+        alert('Zařízení nepřipojeno. Připojte USB/BLE.');
+      }
+    }
+    function loadScript(src){
+      return new Promise((res,rej)=>{
+        const s=document.createElement('script');
+        s.src=src; s.defer=false;
+        s.onload=()=>res(); s.onerror=()=>rej(new Error('script load failed '+src));
+        document.head.appendChild(s);
+      });
+    }
+
+    async function openFM(){
+      if (!isConnectedNow()){ showNotConnected(); return; }
+
+      stopCode();
+
+      const overlay = document.getElementById('fm_overlay');
+      if (!overlay.dataset.ready){
+        // 1) injektuj HTML file manageru
+        const full = await (await fetch('filemanager.html',{cache:'no-store'})).text();
+        const bodyMatch = full.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+        overlay.innerHTML = bodyMatch ? bodyMatch[1] : full;
+
+        // 2) CSS jen jednou
+        if (!document.querySelector('link[href="filemanager.css"]')){
+          const link = document.createElement('link');
+          link.rel='stylesheet'; link.href='css/filemanager.css';
+          document.head.appendChild(link);
+        }
+
+        // 3) loader: filemanager.js (REPL varianta uvnitř)
+        await loadScript('js/filemanager.js');
+
+        // 4) naslouchej zavírání
+        document.addEventListener('click', (e)=>{
+          if (e.target && e.target.id === 'fm_close_btn') closeFM();
+        });
+
+        overlay.dataset.ready='1';
+      }
+
+      overlay.style.display='block';
+      // deaktivuj globální DnD z index.html, nech běžet jen DnD FileManageru
+      window.__FM_ACTIVE = true;
+      // Globální blokace DnD mimo FileManager (capture-level)
+      const overlayEl = document.getElementById('fm_overlay');
+      const suppressOutsideDnD = (e) => {
+      if (!window.__FM_ACTIVE) return;
+      // povol jen události uvnitř overlaye
+      if (!overlayEl.contains(e.target)) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      };
+      document.addEventListener('dragover', suppressOutsideDnD, true);
+      document.addEventListener('drop',     suppressOutsideDnD, true);
+      // ulož handler pro pozdější odebrání
+      overlayEl.__suppressOutsideDnD = suppressOutsideDnD;
+
+      try { document.getElementById('drop_zone').style.display = 'none'; } catch(_){}
+
+      // refresh kořene po otevření
+      if (typeof window.loadDirectoryContents === 'function'){
+        try{ await loadDirectoryContents('/'); }catch(e){ console.warn(e); }
+      }
+      if (typeof window.updateStatus === 'function'){
+        try{ await updateStatus(); }catch(e){ console.warn(e); }
+      }
+    }
+
+    function closeFM(){
+      document.getElementById('fm_overlay').style.display='none';
+      // reaktivuj globální DnD v index.html
+      const overlayEl = document.getElementById('fm_overlay');
+      const h = overlayEl.__suppressOutsideDnD;
+      if (h) {
+          document.removeEventListener('dragover', h, true);
+          document.removeEventListener('drop',     h, true);
+          overlayEl.__suppressOutsideDnD = null;
+      }
+      window.__FM_ACTIVE = false;
+    }
+  </script>
+  
+  
+  <script>
+    if (!isElectron) {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/esp_ide_v2/sw.js', { scope: '/esp_ide_v2/' });
+        }
+    }
+    
+    // V Electronu zakázat tlačítko + zabránit volání funkce
+    if (isElectron) {
+        const btn = document.getElementById('joy-btn') || document.querySelector('button[onclick*="openJoy_App"]');
+        if (btn) {
+          btn.disabled = true;
+          btn.setAttribute('aria-disabled', 'true');
+          btn.title = 'V Electronu není podporováno';
+          btn.style.opacity = '0.6';
+          btn.style.cursor = 'not-allowed';
+          btn.onclick = (e)=>{ e.preventDefault(); e.stopPropagation(); return false; };
+        }
+        
+        const btn_install = document.getElementById('install_fw-btn') || document.querySelector('button[onclick*="openJoy_App"]');
+        if (btn_install) {
+          btn_install.disabled = true;
+          btn_install.setAttribute('aria-disabled', 'true');
+          btn_install.title = 'V Electronu není podporováno';
+          btn_install.style.opacity = '0.6';
+          btn_install.style.cursor = 'not-allowed';
+          btn_install.onclick = (e)=>{ e.preventDefault(); e.stopPropagation(); return false; };
+        }
+    }
+  </script>
+  
+</body>
+</html>
